@@ -6,6 +6,7 @@ import StarfieldCanvas from '../features/starfield/StarfieldCanvas'
 import MeteorTrail, { type MeteorState } from '../features/meteor/MeteorTrail'
 import quotePool, { getInitialQuoteIndex, getNextQuoteIndex } from '../features/quotes/quotePool'
 import SettingsPanel from '../features/settings/SettingsPanel'
+import { useDevFpsMonitor } from '../shared/hooks/useDevFpsMonitor'
 
 const LONG_PRESS_DURATION_MS = 1000
 const TAP_MAX_DURATION_MS = 280
@@ -31,11 +32,13 @@ const createMeteorState = (id: number): MeteorState => {
 }
 
 function App() {
+  const isDevMode = import.meta.env.DEV
   const [quoteIndex, setQuoteIndex] = useState(() => getInitialQuoteIndex())
   const [quoteRevision, setQuoteRevision] = useState(0)
   const [meteor, setMeteor] = useState<MeteorState | null>(null)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [showQuote, setShowQuote] = useState(true)
+  const fpsSnapshot = useDevFpsMonitor(isDevMode)
 
   const pointerIdRef = useRef<number | null>(null)
   const pressStartedAtRef = useRef(0)
@@ -183,6 +186,11 @@ function App() {
         onToggleOpen={() => setIsSettingsOpen((current) => !current)}
         onShowQuoteChange={setShowQuote}
       />
+      {isDevMode && fpsSnapshot ? (
+        <div className="fps-monitor" aria-label="FPS monitor">
+          FPS {fpsSnapshot.fps} · {fpsSnapshot.frameMs}ms
+        </div>
+      ) : null}
       <section className="welcome-panel">
         <h1 className="welcome-title">Astronomy App</h1>
         {showQuote ? (

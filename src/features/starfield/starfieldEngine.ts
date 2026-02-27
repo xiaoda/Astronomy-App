@@ -7,24 +7,13 @@ type StarLayerConfig = {
   driftRange: readonly [number, number]
 }
 
-type Star = {
-  x: number
-  y: number
-  size: number
-  baseAlpha: number
-  twinkleSpeed: number
-  twinkleAmplitude: number
-  twinklePhase: number
-  driftRadius: number
-  driftPhase: number
-}
-
 type StarfieldEngine = {
   start: () => void
   stop: () => void
 }
 
 type RenderProfile = {
+  tier: 'conserve' | 'balanced' | 'high'
   density: number
   minStars: number
   maxStars: number
@@ -32,10 +21,24 @@ type RenderProfile = {
   targetFps: number
 }
 
+type StarBuffer = {
+  count: number
+  x: Float32Array
+  y: Float32Array
+  size: Float32Array
+  baseAlpha: Float32Array
+  twinkleSpeed: Float32Array
+  twinkleAmplitude: Float32Array
+  twinklePhase: Float32Array
+  driftRadius: Float32Array
+  driftPhase: Float32Array
+}
+
 const LOOP_DURATION_MS = 90_000
-const DEFAULT_DENSITY = 0.00006
-const DEFAULT_MIN_STARS = 80
-const DEFAULT_MAX_STARS = 260
+const TOUCH_VIEWPORT_MAX = 920
+const DEFAULT_DENSITY = 0.00005
+const DEFAULT_MIN_STARS = 72
+const DEFAULT_MAX_STARS = 230
 
 const LAYERS: readonly StarLayerConfig[] = [
   {
@@ -68,6 +71,9 @@ const clamp = (value: number, min: number, max: number) => Math.min(max, Math.ma
 
 const randomBetween = (min: number, max: number) => min + Math.random() * (max - min)
 
+const isTouchDevice = () =>
+  typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0)
+
 const wrap = (value: number, max: number) => {
   if (value < 0) {
     return value + max
@@ -80,66 +86,104 @@ const wrap = (value: number, max: number) => {
   return value
 }
 
-const resolveRenderProfile = (): RenderProfile => {
+const resolveRenderProfile = (viewportWidth: number, viewportHeight: number): RenderProfile => {
   const cpuCores = navigator.hardwareConcurrency ?? 4
   const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 4
+  const minViewportEdge = Math.min(viewportWidth, viewportHeight)
+  const mobileLikeViewport = minViewportEdge <= TOUCH_VIEWPORT_MAX && isTouchDevice()
   const isLowPowerDevice = cpuCores <= 4 || memory <= 4
 
   if (isLowPowerDevice) {
     return {
-      density: 0.000042,
-      minStars: 56,
-      maxStars: 160,
+      tier: 'conserve',
+      density: 0.000024,
+      minStars: 36,
+      maxStars: 120,
       maxPixelRatio: 1,
-      targetFps: 24,
+      targetFps: 30,
+    }
+  }
+
+  if (mobileLikeViewport) {
+    return {
+      tier: 'balanced',
+      density: 0.000035,
+      minStars: 48,
+      maxStars: 170,
+      maxPixelRatio: 1.15,
+      targetFps: 45,
     }
   }
 
   return {
+    tier: 'high',
     density: DEFAULT_DENSITY,
     minStars: DEFAULT_MIN_STARS,
     maxStars: DEFAULT_MAX_STARS,
     maxPixelRatio: 1.35,
-    targetFps: 30,
+    targetFps: 60,
   }
 }
 
-const buildStars = (width: number, height: number, profile: RenderProfile): Star[] => {
+const buildStars = (width: number, height: number, profile: RenderProfile): StarBuffer => {
   const area = width * height
   const totalStars = clamp(Math.round(area * profile.density), profile.minStars, profile.maxStars)
-  const stars: Star[] = []
+  const starsByTierFactor =
+    profile.tier === 'conserve' ? 0.95 : profile.tier === 'balanced' ? 1 : 1.04
+  const starCount = clamp(
+    Math.round(totalStars * starsByTierFactor),
+    profile.minStars,
+    profile.maxStars,
+  )
+
+  const x = new Float32Array(starCount)
+  const y = new Float32Array(starCount)
+  const size = new Float32Array(starCount)
+  const baseAlpha = new Float32Array(starCount)
+  const twinkleSpeed = new Float32Array(starCount)
+  const twinkleAmplitude = new Float32Array(starCount)
+  const twinklePhase = new Float32Array(starCount)
+  const driftRadius = new Float32Array(starCount)
+  const driftPhase = new Float32Array(starCount)
+  let cursor = 0
 
   LAYERS.forEach((layer, layerIndex) => {
     const count =
-      layerIndex === LAYERS.length - 1
-        ? totalStars - stars.length
-        : Math.round(totalStars * layer.ratio)
+      layerIndex === LAYERS.length - 1 ? starCount - cursor : Math.round(starCount * layer.ratio)
 
     for (let index = 0; index < count; index += 1) {
-      stars.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        size: randomBetween(layer.sizeRange[0], layer.sizeRange[1]),
-        baseAlpha: randomBetween(layer.alphaRange[0], layer.alphaRange[1]),
-        twinkleSpeed: randomBetween(layer.twinkleSpeedRange[0], layer.twinkleSpeedRange[1]),
-        twinkleAmplitude: randomBetween(
-          layer.twinkleAmplitudeRange[0],
-          layer.twinkleAmplitudeRange[1],
-        ),
-        twinklePhase: Math.random() * Math.PI * 2,
-        driftRadius: randomBetween(layer.driftRange[0], layer.driftRange[1]),
-        driftPhase: Math.random() * Math.PI * 2,
-      })
+      x[cursor] = Math.random() * width
+      y[cursor] = Math.random() * height
+      size[cursor] = randomBetween(layer.sizeRange[0], layer.sizeRange[1])
+      baseAlpha[cursor] = randomBetween(layer.alphaRange[0], layer.alphaRange[1])
+      twinkleSpeed[cursor] = randomBetween(layer.twinkleSpeedRange[0], layer.twinkleSpeedRange[1])
+      twinkleAmplitude[cursor] = randomBetween(
+        layer.twinkleAmplitudeRange[0],
+        layer.twinkleAmplitudeRange[1],
+      )
+      twinklePhase[cursor] = Math.random() * Math.PI * 2
+      driftRadius[cursor] = randomBetween(layer.driftRange[0], layer.driftRange[1])
+      driftPhase[cursor] = Math.random() * Math.PI * 2
+      cursor += 1
     }
   })
 
-  return stars
+  return {
+    count: cursor,
+    x,
+    y,
+    size,
+    baseAlpha,
+    twinkleSpeed,
+    twinkleAmplitude,
+    twinklePhase,
+    driftRadius,
+    driftPhase,
+  }
 }
 
 export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngine => {
   const context = canvas.getContext('2d')
-  const renderProfile = resolveRenderProfile()
-  const frameIntervalMs = 1000 / renderProfile.targetFps
 
   if (!context) {
     return {
@@ -150,7 +194,9 @@ export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngin
 
   let width = 1
   let height = 1
-  let stars: Star[] = []
+  let renderProfile = resolveRenderProfile(window.innerWidth, window.innerHeight)
+  let frameIntervalMs = 1000 / renderProfile.targetFps
+  let stars: StarBuffer = buildStars(1, 1, renderProfile)
   let animationFrameId = 0
   let startTime = 0
   let lastFrameTime = 0
@@ -163,6 +209,10 @@ export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngin
     if (!nextWidth || !nextHeight) {
       return
     }
+
+    const nextProfile = resolveRenderProfile(nextWidth, nextHeight)
+    renderProfile = nextProfile
+    frameIntervalMs = 1000 / renderProfile.targetFps
 
     const pixelRatio = Math.min(window.devicePixelRatio || 1, renderProfile.maxPixelRatio)
 
@@ -190,36 +240,52 @@ export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngin
     const elapsedSeconds = (timestamp - startTime) / 1000
     const loopProgress = ((timestamp - startTime) % LOOP_DURATION_MS) / LOOP_DURATION_MS
     const driftCycle = loopProgress * Math.PI * 2
+    const sinDriftCycle = Math.sin(driftCycle)
     const cycleEnvelope = 0.72 + Math.sin(driftCycle) * 0.28
-    const globalOffsetX = Math.sin(driftCycle) * 52
+    const globalOffsetX = sinDriftCycle * 52
     const globalOffsetY = Math.cos(driftCycle * 0.8) * 34
 
     context.clearRect(0, 0, width, height)
     context.fillStyle = '#ffffff'
 
-    for (const star of stars) {
-      const twinkle =
-        Math.sin(elapsedSeconds * star.twinkleSpeed + star.twinklePhase) * star.twinkleAmplitude
-      const alpha = clamp((star.baseAlpha + twinkle) * cycleEnvelope, 0.08, 1)
+    const {
+      count,
+      x,
+      y,
+      size,
+      baseAlpha,
+      twinkleSpeed,
+      twinkleAmplitude,
+      twinklePhase,
+      driftRadius,
+      driftPhase,
+    } = stars
 
-      const x = wrap(
-        star.x + Math.cos(driftCycle + star.driftPhase) * star.driftRadius + globalOffsetX,
+    for (let index = 0; index < count; index += 1) {
+      const twinkle =
+        Math.sin(elapsedSeconds * twinkleSpeed[index] + twinklePhase[index]) *
+        twinkleAmplitude[index]
+      const alpha = clamp((baseAlpha[index] + twinkle) * cycleEnvelope, 0.08, 1)
+      const driftPhaseValue = driftPhase[index]
+
+      const starX = wrap(
+        x[index] + Math.cos(driftCycle + driftPhaseValue) * driftRadius[index] + globalOffsetX,
         width,
       )
-      const y = wrap(
-        star.y +
-          Math.sin(driftCycle + star.driftPhase * 0.85) * star.driftRadius * 0.95 +
+      const starY = wrap(
+        y[index] +
+          Math.sin(driftCycle + driftPhaseValue * 0.85) * driftRadius[index] * 0.95 +
           globalOffsetY,
         height,
       )
 
       context.globalAlpha = alpha
 
-      if (star.size <= 1.4) {
-        context.fillRect(x, y, star.size, star.size)
+      if (size[index] <= 1.4) {
+        context.fillRect(starX, starY, size[index], size[index])
       } else {
         context.beginPath()
-        context.arc(x, y, star.size, 0, Math.PI * 2)
+        context.arc(starX, starY, size[index], 0, Math.PI * 2)
         context.fill()
       }
     }
@@ -234,6 +300,8 @@ export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngin
     }
 
     isRunning = true
+    startTime = 0
+    lastFrameTime = 0
     resize()
 
     if (typeof ResizeObserver !== 'undefined') {
