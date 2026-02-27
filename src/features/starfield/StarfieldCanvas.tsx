@@ -15,7 +15,19 @@ function StarfieldCanvas() {
     const starfieldEngine = createStarfieldEngine(canvasElement)
     starfieldEngine.start()
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        starfieldEngine.stop()
+        return
+      }
+
+      starfieldEngine.start()
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
       starfieldEngine.stop()
     }
   }, [])

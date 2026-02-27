@@ -16,12 +16,12 @@
 
 .nebula-layer {
   position: absolute;
-  inset: -20%;
+  inset: 0;
   background:
-    radial-gradient(circle at 20% 30%, rgba(89, 124, 212, 0.25), transparent 45%),
-    radial-gradient(circle at 70% 65%, rgba(122, 105, 183, 0.18), transparent 40%);
-  filter: blur(18px);
-  animation: nebula-float 36s ease-in-out infinite alternate;
+    radial-gradient(circle at 20% 30%, rgba(89, 124, 212, 0.18), transparent 42%),
+    radial-gradient(circle at 70% 65%, rgba(122, 105, 183, 0.12), transparent 40%);
+  opacity: 0.7;
+  pointer-events: none;
 }
 
 .welcome-panel {
@@ -49,13 +49,4 @@
   font-size: clamp(1rem, 2.4vw, 1.2rem);
   line-height: 1.7;
   color: rgba(231, 236, 255, 0.9);
-}
-
-@keyframes nebula-float {
-  from {
-    transform: translate3d(-2%, -1%, 0);
-  }
-  to {
-    transform: translate3d(2%, 1%, 0);
-  }
 }

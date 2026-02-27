@@ -24,35 +24,43 @@ type StarfieldEngine = {
   stop: () => void
 }
 
+type RenderProfile = {
+  density: number
+  minStars: number
+  maxStars: number
+  maxPixelRatio: number
+  targetFps: number
+}
+
 const LOOP_DURATION_MS = 90_000
-const STAR_DENSITY = 0.000085
-const MIN_STARS = 120
-const MAX_STARS = 420
+const DEFAULT_DENSITY = 0.00006
+const DEFAULT_MIN_STARS = 80
+const DEFAULT_MAX_STARS = 260
 
 const LAYERS: readonly StarLayerConfig[] = [
   {
     ratio: 0.5,
-    sizeRange: [0.5, 1.2],
-    alphaRange: [0.2, 0.52],
-    twinkleSpeedRange: [0.25, 0.5],
-    twinkleAmplitudeRange: [0.03, 0.09],
-    driftRange: [0.2, 0.8],
+    sizeRange: [0.8, 1.8],
+    alphaRange: [0.22, 0.62],
+    twinkleSpeedRange: [0.8, 1.5],
+    twinkleAmplitudeRange: [0.1, 0.22],
+    driftRange: [14, 30],
   },
   {
     ratio: 0.33,
-    sizeRange: [0.8, 1.7],
-    alphaRange: [0.35, 0.72],
-    twinkleSpeedRange: [0.35, 0.62],
-    twinkleAmplitudeRange: [0.06, 0.14],
-    driftRange: [0.6, 1.6],
+    sizeRange: [1.1, 2.3],
+    alphaRange: [0.35, 0.8],
+    twinkleSpeedRange: [1, 1.8],
+    twinkleAmplitudeRange: [0.2, 0.35],
+    driftRange: [24, 46],
   },
   {
     ratio: 0.17,
-    sizeRange: [1.1, 2.2],
-    alphaRange: [0.46, 0.9],
-    twinkleSpeedRange: [0.4, 0.75],
-    twinkleAmplitudeRange: [0.08, 0.18],
-    driftRange: [1.2, 2.2],
+    sizeRange: [1.6, 3.6],
+    alphaRange: [0.5, 1],
+    twinkleSpeedRange: [1.2, 2.2],
+    twinkleAmplitudeRange: [0.28, 0.45],
+    driftRange: [40, 72],
   },
 ]
 
@@ -72,9 +80,33 @@ const wrap = (value: number, max: number) => {
   return value
 }
 
-const buildStars = (width: number, height: number): Star[] => {
+const resolveRenderProfile = (): RenderProfile => {
+  const cpuCores = navigator.hardwareConcurrency ?? 4
+  const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 4
+  const isLowPowerDevice = cpuCores <= 4 || memory <= 4
+
+  if (isLowPowerDevice) {
+    return {
+      density: 0.000042,
+      minStars: 56,
+      maxStars: 160,
+      maxPixelRatio: 1,
+      targetFps: 24,
+    }
+  }
+
+  return {
+    density: DEFAULT_DENSITY,
+    minStars: DEFAULT_MIN_STARS,
+    maxStars: DEFAULT_MAX_STARS,
+    maxPixelRatio: 1.35,
+    targetFps: 30,
+  }
+}
+
+const buildStars = (width: number, height: number, profile: RenderProfile): Star[] => {
   const area = width * height
-  const totalStars = clamp(Math.round(area * STAR_DENSITY), MIN_STARS, MAX_STARS)
+  const totalStars = clamp(Math.round(area * profile.density), profile.minStars, profile.maxStars)
   const stars: Star[] = []
 
   LAYERS.forEach((layer, layerIndex) => {
@@ -106,6 +138,8 @@ const buildStars = (width: number, height: number): Star[] => {
 
 export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngine => {
   const context = canvas.getContext('2d')
+  const renderProfile = resolveRenderProfile()
+  const frameIntervalMs = 1000 / renderProfile.targetFps
 
   if (!context) {
     return {
@@ -119,6 +153,8 @@ export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngin
   let stars: Star[] = []
   let animationFrameId = 0
   let startTime = 0
+  let lastFrameTime = 0
+  let isRunning = false
   let resizeObserver: ResizeObserver | null = null
 
   const resize = () => {
@@ -128,7 +164,7 @@ export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngin
       return
     }
 
-    const pixelRatio = Math.min(window.devicePixelRatio || 1, 2)
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, renderProfile.maxPixelRatio)
 
     width = nextWidth
     height = nextHeight
@@ -136,7 +172,7 @@ export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngin
     canvas.height = Math.floor(nextHeight * pixelRatio)
 
     context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0)
-    stars = buildStars(width, height)
+    stars = buildStars(width, height, renderProfile)
   }
 
   const render = (timestamp: number) => {
@@ -144,28 +180,48 @@ export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngin
       startTime = timestamp
     }
 
+    if (lastFrameTime && timestamp - lastFrameTime < frameIntervalMs) {
+      animationFrameId = window.requestAnimationFrame(render)
+      return
+    }
+
+    lastFrameTime = timestamp
+
     const elapsedSeconds = (timestamp - startTime) / 1000
     const loopProgress = ((timestamp - startTime) % LOOP_DURATION_MS) / LOOP_DURATION_MS
     const driftCycle = loopProgress * Math.PI * 2
+    const cycleEnvelope = 0.72 + Math.sin(driftCycle) * 0.28
+    const globalOffsetX = Math.sin(driftCycle) * 52
+    const globalOffsetY = Math.cos(driftCycle * 0.8) * 34
 
     context.clearRect(0, 0, width, height)
+    context.fillStyle = '#ffffff'
 
     for (const star of stars) {
       const twinkle =
         Math.sin(elapsedSeconds * star.twinkleSpeed + star.twinklePhase) * star.twinkleAmplitude
-      const alpha = clamp(star.baseAlpha + twinkle, 0.08, 1)
+      const alpha = clamp((star.baseAlpha + twinkle) * cycleEnvelope, 0.08, 1)
 
-      const x = wrap(star.x + Math.cos(driftCycle + star.driftPhase) * star.driftRadius, width)
+      const x = wrap(
+        star.x + Math.cos(driftCycle + star.driftPhase) * star.driftRadius + globalOffsetX,
+        width,
+      )
       const y = wrap(
-        star.y + Math.sin(driftCycle + star.driftPhase * 0.85) * star.driftRadius * 0.6,
+        star.y +
+          Math.sin(driftCycle + star.driftPhase * 0.85) * star.driftRadius * 0.95 +
+          globalOffsetY,
         height,
       )
 
       context.globalAlpha = alpha
-      context.fillStyle = '#ffffff'
-      context.beginPath()
-      context.arc(x, y, star.size, 0, Math.PI * 2)
-      context.fill()
+
+      if (star.size <= 1.4) {
+        context.fillRect(x, y, star.size, star.size)
+      } else {
+        context.beginPath()
+        context.arc(x, y, star.size, 0, Math.PI * 2)
+        context.fill()
+      }
     }
 
     context.globalAlpha = 1
@@ -173,6 +229,11 @@ export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngin
   }
 
   const start = () => {
+    if (isRunning) {
+      return
+    }
+
+    isRunning = true
     resize()
 
     if (typeof ResizeObserver !== 'undefined') {
@@ -186,6 +247,11 @@ export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngin
   }
 
   const stop = () => {
+    if (!isRunning) {
+      return
+    }
+
+    isRunning = false
     window.cancelAnimationFrame(animationFrameId)
 
     if (resizeObserver) {
