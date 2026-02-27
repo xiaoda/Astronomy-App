@@ -81,7 +81,7 @@
 @keyframes meteor-fall {
   0% {
     opacity: 0;
-    transform: rotate(var(--meteor-angle, 0deg)) translate3d(0, 0, 0) scaleX(0.18);
+    transform: translate3d(0, 0, 0) rotate(var(--meteor-angle, 0deg)) scaleX(0.18);
   }
 
   14% {
@@ -90,7 +90,7 @@
 
   100% {
     opacity: 0;
-    transform: rotate(var(--meteor-angle, 0deg))
-      translate3d(var(--meteor-dx, -300px), var(--meteor-dy, 200px), 0) scaleX(1);
+    transform: translate3d(var(--meteor-dx, -300px), var(--meteor-dy, 200px), 0)
+      rotate(var(--meteor-angle, 0deg)) scaleX(1);
   }
 }
