@@ -36,7 +36,6 @@ function App() {
   const [meteor, setMeteor] = useState<MeteorState | null>(null)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [showQuote, setShowQuote] = useState(true)
-  const [breathingEnabled, setBreathingEnabled] = useState(true)
 
   const pointerIdRef = useRef<number | null>(null)
   const pressStartedAtRef = useRef(0)
@@ -165,11 +164,10 @@ function App() {
   }
 
   const currentQuote = quotePool[quoteIndex] ?? '你不需要赶路，先看一会儿星光。'
-  const appShellClassName = breathingEnabled ? 'app-shell breathing-enabled' : 'app-shell'
 
   return (
     <main
-      className={appShellClassName}
+      className="app-shell"
       aria-label="Astronomy calm experience"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -182,10 +180,8 @@ function App() {
       <SettingsPanel
         isOpen={isSettingsOpen}
         showQuote={showQuote}
-        breathingEnabled={breathingEnabled}
         onToggleOpen={() => setIsSettingsOpen((current) => !current)}
         onShowQuoteChange={setShowQuote}
-        onBreathingChange={setBreathingEnabled}
       />
       <section className="welcome-panel">
         <h1 className="welcome-title">Astronomy App</h1>

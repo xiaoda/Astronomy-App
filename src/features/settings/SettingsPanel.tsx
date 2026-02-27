@@ -3,10 +3,8 @@ import type { MouseEventHandler, PointerEventHandler } from 'react'
 type SettingsPanelProps = {
   isOpen: boolean
   showQuote: boolean
-  breathingEnabled: boolean
   onToggleOpen: () => void
   onShowQuoteChange: (nextValue: boolean) => void
-  onBreathingChange: (nextValue: boolean) => void
 }
 
 const stopPointerPropagation: PointerEventHandler<HTMLElement> = (event) => {
@@ -17,14 +15,7 @@ const stopClickPropagation: MouseEventHandler<HTMLElement> = (event) => {
   event.stopPropagation()
 }
 
-function SettingsPanel({
-  isOpen,
-  showQuote,
-  breathingEnabled,
-  onToggleOpen,
-  onShowQuoteChange,
-  onBreathingChange,
-}: SettingsPanelProps) {
+function SettingsPanel({ isOpen, showQuote, onToggleOpen, onShowQuoteChange }: SettingsPanelProps) {
   return (
     <aside
       className="settings-root"
@@ -52,14 +43,6 @@ function SettingsPanel({
               type="checkbox"
               checked={showQuote}
               onChange={(event) => onShowQuoteChange(event.target.checked)}
-            />
-          </label>
-          <label className="settings-item">
-            <span>呼吸模式</span>
-            <input
-              type="checkbox"
-              checked={breathingEnabled}
-              onChange={(event) => onBreathingChange(event.target.checked)}
             />
           </label>
         </section>

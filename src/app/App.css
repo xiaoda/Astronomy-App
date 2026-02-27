@@ -8,20 +8,6 @@
   background: radial-gradient(circle at 30% 20%, #1c2d52 0%, #0c1430 40%, #050916 100%);
 }
 
-.app-shell::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0;
-  z-index: 0;
-  background: radial-gradient(circle at 50% 48%, rgba(157, 195, 255, 0.22), transparent 62%);
-}
-
-.app-shell.breathing-enabled::before {
-  animation: breathing-visual 10s ease-in-out infinite;
-}
-
 .starfield-canvas {
   position: absolute;
   inset: 0;
@@ -183,19 +169,5 @@
   100% {
     opacity: 0;
     transform: translateY(-4px);
-  }
-}
-
-@keyframes breathing-visual {
-  0% {
-    opacity: 0.03;
-  }
-
-  40% {
-    opacity: 0.17;
-  }
-
-  100% {
-    opacity: 0.03;
   }
 }
