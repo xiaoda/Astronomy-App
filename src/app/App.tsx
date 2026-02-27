@@ -1,16 +1,18 @@
-import { useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { PointerEventHandler } from 'react'
 
 import './App.css'
 import StarfieldCanvas from '../features/starfield/StarfieldCanvas'
 import MeteorTrail, { type MeteorState } from '../features/meteor/MeteorTrail'
 import quotePool, { getInitialQuoteIndex, getNextQuoteIndex } from '../features/quotes/quotePool'
+import SettingsPanel from '../features/settings/SettingsPanel'
 
 const LONG_PRESS_DURATION_MS = 1000
 const TAP_MAX_DURATION_MS = 280
 const TAP_COOLDOWN_MS = 260
 const METEOR_COOLDOWN_MS = 1000
 const MOVE_CANCEL_THRESHOLD_PX = 18
+const QUOTE_SWITCH_INTERVAL_MS = 4400
 
 const createMeteorState = (id: number): MeteorState => {
   const deltaX = -(260 + Math.random() * 220)
@@ -30,7 +32,11 @@ const createMeteorState = (id: number): MeteorState => {
 
 function App() {
   const [quoteIndex, setQuoteIndex] = useState(() => getInitialQuoteIndex())
+  const [quoteRevision, setQuoteRevision] = useState(0)
   const [meteor, setMeteor] = useState<MeteorState | null>(null)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [showQuote, setShowQuote] = useState(true)
+  const [breathingEnabled, setBreathingEnabled] = useState(true)
 
   const pointerIdRef = useRef<number | null>(null)
   const pressStartedAtRef = useRef(0)
@@ -40,6 +46,25 @@ function App() {
   const lastTapAtRef = useRef(0)
   const lastMeteorAtRef = useRef(0)
   const meteorIdRef = useRef(0)
+
+  const switchQuote = useCallback(() => {
+    setQuoteIndex((currentIndex) => getNextQuoteIndex(currentIndex))
+    setQuoteRevision((current) => current + 1)
+  }, [])
+
+  useEffect(() => {
+    if (!showQuote) {
+      return
+    }
+
+    const timerId = window.setInterval(() => {
+      switchQuote()
+    }, QUOTE_SWITCH_INTERVAL_MS)
+
+    return () => {
+      window.clearInterval(timerId)
+    }
+  }, [showQuote, switchQuote])
 
   const clearLongPressTimer = () => {
     if (longPressTimerRef.current !== null) {
@@ -115,9 +140,9 @@ function App() {
 
     clearLongPressTimer()
 
-    if (isTap && now - lastTapAtRef.current >= TAP_COOLDOWN_MS) {
+    if (isTap && showQuote && now - lastTapAtRef.current >= TAP_COOLDOWN_MS) {
       lastTapAtRef.current = now
-      setQuoteIndex((currentIndex) => getNextQuoteIndex(currentIndex))
+      switchQuote()
     }
 
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
@@ -140,10 +165,11 @@ function App() {
   }
 
   const currentQuote = quotePool[quoteIndex] ?? '你不需要赶路，先看一会儿星光。'
+  const appShellClassName = breathingEnabled ? 'app-shell breathing-enabled' : 'app-shell'
 
   return (
     <main
-      className="app-shell"
+      className={appShellClassName}
       aria-label="Astronomy calm experience"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -153,10 +179,24 @@ function App() {
       <StarfieldCanvas />
       <div className="nebula-layer" aria-hidden="true" />
       <MeteorTrail meteor={meteor} onDone={() => setMeteor(null)} />
+      <SettingsPanel
+        isOpen={isSettingsOpen}
+        showQuote={showQuote}
+        breathingEnabled={breathingEnabled}
+        onToggleOpen={() => setIsSettingsOpen((current) => !current)}
+        onShowQuoteChange={setShowQuote}
+        onBreathingChange={setBreathingEnabled}
+      />
       <section className="welcome-panel">
         <h1 className="welcome-title">Astronomy App</h1>
-        <p className="welcome-copy">{currentQuote}</p>
-        <p className="gesture-hint">轻触切换文案 · 长按 1 秒触发流星</p>
+        {showQuote ? (
+          <>
+            <p key={quoteRevision} className="welcome-copy quote-fade">
+              {currentQuote}
+            </p>
+            <p className="gesture-hint">轻触切换文案 · 长按 1 秒触发流星</p>
+          </>
+        ) : null}
       </section>
     </main>
   )

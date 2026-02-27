@@ -8,12 +8,27 @@
   background: radial-gradient(circle at 30% 20%, #1c2d52 0%, #0c1430 40%, #050916 100%);
 }
 
+.app-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 0;
+  background: radial-gradient(circle at 50% 48%, rgba(157, 195, 255, 0.22), transparent 62%);
+}
+
+.app-shell.breathing-enabled::before {
+  animation: breathing-visual 10s ease-in-out infinite;
+}
+
 .starfield-canvas {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
+  z-index: 1;
 }
 
 .nebula-layer {
@@ -24,6 +39,7 @@
     radial-gradient(circle at 70% 65%, rgba(122, 105, 183, 0.12), transparent 40%);
   opacity: 0.7;
   pointer-events: none;
+  z-index: 2;
 }
 
 .welcome-panel {
@@ -35,7 +51,7 @@
   padding: 1.5rem;
   text-align: center;
   color: #e7ecff;
-  z-index: 1;
+  z-index: 3;
 }
 
 .welcome-title {
@@ -53,6 +69,10 @@
   color: rgba(231, 236, 255, 0.9);
 }
 
+.quote-fade {
+  animation: quote-fade 4.4s ease-in-out both;
+}
+
 .gesture-hint {
   margin: 1rem auto 0;
   font-size: clamp(0.8rem, 2vw, 0.92rem);
@@ -67,7 +87,7 @@
   transform-origin: left center;
   pointer-events: none;
   opacity: 0;
-  z-index: 2;
+  z-index: 4;
   background: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0),
@@ -76,6 +96,56 @@
     rgba(255, 255, 255, 0)
   );
   animation: meteor-fall var(--meteor-duration, 1100ms) ease-out forwards;
+}
+
+.settings-root {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.55rem;
+}
+
+.settings-trigger {
+  border: 1px solid rgba(231, 236, 255, 0.28);
+  border-radius: 999px;
+  padding: 0.42rem 0.88rem;
+  color: rgba(237, 242, 255, 0.96);
+  background: rgba(14, 26, 54, 0.58);
+  font-size: 0.86rem;
+  cursor: pointer;
+}
+
+.settings-panel {
+  min-width: 180px;
+  border: 1px solid rgba(231, 236, 255, 0.2);
+  border-radius: 12px;
+  padding: 0.72rem 0.76rem;
+  background: rgba(8, 15, 34, 0.84);
+  backdrop-filter: blur(6px);
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: rgba(237, 242, 255, 0.9);
+  font-size: 0.88rem;
+}
+
+.settings-item + .settings-item {
+  margin-top: 0.65rem;
+}
+
+.settings-item input {
+  width: 36px;
+  height: 20px;
+  margin: 0;
+  accent-color: #98c0ff;
 }
 
 @keyframes meteor-fall {
@@ -92,5 +162,40 @@
     opacity: 0;
     transform: translate3d(var(--meteor-dx, -300px), var(--meteor-dy, 200px), 0)
       rotate(var(--meteor-angle, 0deg)) scaleX(1);
+  }
+}
+
+@keyframes quote-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  16% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  74% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes breathing-visual {
+  0% {
+    opacity: 0.03;
+  }
+
+  40% {
+    opacity: 0.17;
+  }
+
+  100% {
+    opacity: 0.03;
   }
 }
