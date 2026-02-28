@@ -74,17 +74,7 @@ const randomBetween = (min: number, max: number) => min + Math.random() * (max -
 const isTouchDevice = () =>
   typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0)
 
-const wrap = (value: number, max: number) => {
-  if (value < 0) {
-    return value + max
-  }
-
-  if (value > max) {
-    return value - max
-  }
-
-  return value
-}
+const wrap = (value: number, max: number) => ((value % max) + max) % max
 
 const resolveRenderProfile = (viewportWidth: number, viewportHeight: number): RenderProfile => {
   const cpuCores = navigator.hardwareConcurrency ?? 4
@@ -203,6 +193,17 @@ export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngin
   let isRunning = false
   let resizeObserver: ResizeObserver | null = null
 
+  const drawStar = (x: number, y: number, starSize: number) => {
+    if (starSize <= 1.4) {
+      context.fillRect(x, y, starSize, starSize)
+      return
+    }
+
+    context.beginPath()
+    context.arc(x, y, starSize, 0, Math.PI * 2)
+    context.fill()
+  }
+
   const resize = () => {
     const { width: nextWidth, height: nextHeight } = canvas.getBoundingClientRect()
 
@@ -268,25 +269,37 @@ export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngin
       const alpha = clamp((baseAlpha[index] + twinkle) * cycleEnvelope, 0.08, 1)
       const driftPhaseValue = driftPhase[index]
 
-      const starX = wrap(
-        x[index] + Math.cos(driftCycle + driftPhaseValue) * driftRadius[index] + globalOffsetX,
-        width,
-      )
-      const starY = wrap(
+      const rawStarX =
+        x[index] + Math.cos(driftCycle + driftPhaseValue) * driftRadius[index] + globalOffsetX
+      const rawStarY =
         y[index] +
-          Math.sin(driftCycle + driftPhaseValue * 0.85) * driftRadius[index] * 0.95 +
-          globalOffsetY,
-        height,
-      )
+        Math.sin(driftCycle + driftPhaseValue * 0.85) * driftRadius[index] * 0.95 +
+        globalOffsetY
+      const starX = wrap(rawStarX, width)
+      const starY = wrap(rawStarY, height)
+      const starSize = size[index]
+      const overflowPadding = starSize + 2
+      const xOffsets = [0]
+      const yOffsets = [0]
+
+      if (starX < overflowPadding) {
+        xOffsets.push(width)
+      } else if (starX > width - overflowPadding) {
+        xOffsets.push(-width)
+      }
+
+      if (starY < overflowPadding) {
+        yOffsets.push(height)
+      } else if (starY > height - overflowPadding) {
+        yOffsets.push(-height)
+      }
 
       context.globalAlpha = alpha
 
-      if (size[index] <= 1.4) {
-        context.fillRect(starX, starY, size[index], size[index])
-      } else {
-        context.beginPath()
-        context.arc(starX, starY, size[index], 0, Math.PI * 2)
-        context.fill()
+      for (const xOffset of xOffsets) {
+        for (const yOffset of yOffsets) {
+          drawStar(starX + xOffset, starY + yOffset, starSize)
+        }
       }
     }
 

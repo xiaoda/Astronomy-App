@@ -7,17 +7,17 @@
   touch-action: none;
   user-select: none;
   background:
-    radial-gradient(circle at 50% 120%, var(--app-bg-vignette), transparent 42%),
-    radial-gradient(circle at 30% 18%, var(--app-bg-top) 0%, var(--app-bg-mid) 42%, var(--app-bg-base) 100%);
+    radial-gradient(circle at 50% 120%, var(--app-bg-vignette), transparent 40%),
+    radial-gradient(circle at 28% 16%, var(--app-bg-top) 0%, var(--app-bg-mid) 38%, var(--app-bg-base) 100%);
 }
 
 .nebula-layer {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 18% 28%, var(--nebula-blue), transparent 44%),
-    radial-gradient(circle at 72% 62%, var(--nebula-indigo), transparent 42%);
-  opacity: 0.68;
+    radial-gradient(circle at 18% 26%, var(--nebula-blue), transparent 42%),
+    radial-gradient(circle at 74% 60%, var(--nebula-indigo), transparent 40%);
+  opacity: 0.5;
   pointer-events: none;
   z-index: 2;
 }
