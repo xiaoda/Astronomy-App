@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+﻿import { useCallback, useEffect, useRef, useState } from 'react'
 import type { PointerEventHandler } from 'react'
 
 import './App.css'
-import StarfieldCanvas from '../features/starfield/StarfieldCanvas'
 import MeteorTrail, { type MeteorState } from '../features/meteor/MeteorTrail'
+import musicTracks from '../features/music/musicTracks'
 import quotePool, { getInitialQuoteIndex, getNextQuoteIndex } from '../features/quotes/quotePool'
 import SettingsPanel from '../features/settings/SettingsPanel'
+import StarfieldCanvas from '../features/starfield/StarfieldCanvas'
 import { useDevFpsMonitor } from '../shared/hooks/useDevFpsMonitor'
 
 const LONG_PRESS_DURATION_MS = 1000
@@ -13,7 +14,8 @@ const TAP_MAX_DURATION_MS = 280
 const TAP_COOLDOWN_MS = 260
 const METEOR_COOLDOWN_MS = 1000
 const MOVE_CANCEL_THRESHOLD_PX = 18
-const QUOTE_SWITCH_INTERVAL_MS = 4400
+const QUOTE_SWITCH_INTERVAL_MS = 7000
+const MUSIC_VOLUME = 0.26
 
 const createMeteorState = (id: number): MeteorState => {
   const deltaX = -(260 + Math.random() * 220)
@@ -38,8 +40,12 @@ function App() {
   const [meteor, setMeteor] = useState<MeteorState | null>(null)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [showQuote, setShowQuote] = useState(true)
+  const [isMusicEnabled, setIsMusicEnabled] = useState(true)
+  const [trackIndex, setTrackIndex] = useState(0)
   const fpsSnapshot = useDevFpsMonitor(isDevMode)
 
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const hasUnlockedAudioRef = useRef(false)
   const pointerIdRef = useRef<number | null>(null)
   const pressStartedAtRef = useRef(0)
   const pointerStartRef = useRef({ x: 0, y: 0 })
@@ -49,10 +55,95 @@ function App() {
   const lastMeteorAtRef = useRef(0)
   const meteorIdRef = useRef(0)
 
+  const currentTrack = musicTracks[trackIndex] ?? musicTracks[0]
+  const currentQuote =
+    quotePool[quoteIndex] ?? 'You do not need to rush. Stay with the starlight for a while.'
+  const trackOptions = musicTracks.map((track, index) => ({
+    label: track.title,
+    value: index,
+  }))
+
   const switchQuote = useCallback(() => {
     setQuoteIndex((currentIndex) => getNextQuoteIndex(currentIndex))
     setQuoteRevision((current) => current + 1)
   }, [])
+
+  const playAudio = useCallback(async () => {
+    const audio = audioRef.current
+
+    if (!audio || !isMusicEnabled) {
+      return
+    }
+
+    audio.volume = MUSIC_VOLUME
+
+    try {
+      await audio.play()
+    } catch {
+      // Ignore autoplay rejections until the next user interaction.
+    }
+  }, [isMusicEnabled])
+
+  useEffect(() => {
+    const audio = new Audio(musicTracks[0]?.src ?? '')
+    const handleEnded = () => {
+      setTrackIndex((currentIndex) => (currentIndex + 1) % musicTracks.length)
+    }
+
+    audio.preload = 'auto'
+    audio.volume = MUSIC_VOLUME
+    audio.addEventListener('ended', handleEnded)
+    audioRef.current = audio
+
+    return () => {
+      audio.pause()
+      audio.removeEventListener('ended', handleEnded)
+      audioRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    const audio = audioRef.current
+
+    if (!audio) {
+      return
+    }
+
+    const nextSourceUrl = new URL(currentTrack.src, window.location.href).href
+
+    if (audio.src !== nextSourceUrl) {
+      audio.src = nextSourceUrl
+      audio.load()
+    }
+
+    if (!isMusicEnabled) {
+      audio.pause()
+      return
+    }
+
+    if (hasUnlockedAudioRef.current) {
+      void playAudio()
+    }
+  }, [currentTrack, isMusicEnabled, playAudio])
+
+  useEffect(() => {
+    const unlockAudio = () => {
+      if (hasUnlockedAudioRef.current) {
+        return
+      }
+
+      hasUnlockedAudioRef.current = true
+      void playAudio()
+    }
+
+    window.addEventListener('pointerdown', unlockAudio, true)
+    window.addEventListener('keydown', unlockAudio, true)
+
+    return () => {
+      window.removeEventListener('pointerdown', unlockAudio, true)
+      window.removeEventListener('keydown', unlockAudio, true)
+    }
+  }, [playAudio])
 
   useEffect(() => {
     if (!showQuote) {
@@ -166,8 +257,6 @@ function App() {
     resetGesture()
   }
 
-  const currentQuote = quotePool[quoteIndex] ?? '你不需要赶路，先看一会儿星光。'
-
   return (
     <main
       className="app-shell"
@@ -183,12 +272,18 @@ function App() {
       <SettingsPanel
         isOpen={isSettingsOpen}
         showQuote={showQuote}
+        isMusicEnabled={isMusicEnabled}
+        selectedTrackIndex={trackIndex}
+        trackOptions={trackOptions}
         onToggleOpen={() => setIsSettingsOpen((current) => !current)}
         onShowQuoteChange={setShowQuote}
+        onMusicEnabledChange={setIsMusicEnabled}
+        onTrackChange={setTrackIndex}
+        onNextTrack={() => setTrackIndex((currentIndex) => (currentIndex + 1) % musicTracks.length)}
       />
       {isDevMode && fpsSnapshot ? (
         <div className="fps-monitor" aria-label="FPS monitor">
-          FPS {fpsSnapshot.fps} · {fpsSnapshot.frameMs}ms
+          FPS {fpsSnapshot.fps} | {fpsSnapshot.frameMs}ms
         </div>
       ) : null}
       <section className="welcome-panel">
@@ -198,7 +293,7 @@ function App() {
             <p key={quoteRevision} className="welcome-copy quote-fade">
               {currentQuote}
             </p>
-            <p className="gesture-hint">轻触切换文案 · 长按 1 秒触发流星</p>
+            <p className="gesture-hint">Tap to switch quotes. Long press for 1 second to trigger a meteor.</p>
           </>
         ) : null}
       </section>
