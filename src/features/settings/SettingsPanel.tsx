@@ -54,13 +54,13 @@ function SettingsPanel({
         aria-controls="app-settings-panel"
         onClick={onToggleOpen}
       >
-        Settings
+        设置
       </button>
 
       {isOpen ? (
-        <section id="app-settings-panel" className="settings-panel" aria-label="Display settings">
+        <section id="app-settings-panel" className="settings-panel" aria-label="显示设置">
           <label className="settings-item">
-            <span>Show quotes</span>
+            <span>显示文案</span>
             <input
               type="checkbox"
               checked={showQuote}
@@ -68,7 +68,7 @@ function SettingsPanel({
             />
           </label>
           <label className="settings-item">
-            <span>Music</span>
+            <span>背景音乐</span>
             <input
               type="checkbox"
               checked={isMusicEnabled}
@@ -76,7 +76,7 @@ function SettingsPanel({
             />
           </label>
           <label className="settings-item settings-item-block">
-            <span>Track</span>
+            <span>曲目</span>
             <select
               className="settings-select"
               value={selectedTrackIndex}
@@ -95,7 +95,7 @@ function SettingsPanel({
             disabled={!isMusicEnabled}
             onClick={onNextTrack}
           >
-            Next track
+            下一首
           </button>
         </section>
       ) : null}

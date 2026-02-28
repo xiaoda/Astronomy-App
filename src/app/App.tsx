@@ -56,8 +56,7 @@ function App() {
   const meteorIdRef = useRef(0)
 
   const currentTrack = musicTracks[trackIndex] ?? musicTracks[0]
-  const currentQuote =
-    quotePool[quoteIndex] ?? 'You do not need to rush. Stay with the starlight for a while.'
+  const currentQuote = quotePool[quoteIndex] ?? '你不需要赶路，先陪星光待一会儿。'
   const trackOptions = musicTracks.map((track, index) => ({
     label: track.title,
     value: index,
@@ -260,7 +259,7 @@ function App() {
   return (
     <main
       className="app-shell"
-      aria-label="Astronomy calm experience"
+      aria-label="天文静谧体验"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -282,7 +281,7 @@ function App() {
         onNextTrack={() => setTrackIndex((currentIndex) => (currentIndex + 1) % musicTracks.length)}
       />
       {isDevMode && fpsSnapshot ? (
-        <div className="fps-monitor" aria-label="FPS monitor">
+        <div className="fps-monitor" aria-label="帧率监视器">
           FPS {fpsSnapshot.fps} | {fpsSnapshot.frameMs}ms
         </div>
       ) : null}
@@ -293,7 +292,7 @@ function App() {
             <p key={quoteRevision} className="welcome-copy quote-fade">
               {currentQuote}
             </p>
-            <p className="gesture-hint">Tap to switch quotes. Long press for 1 second to trigger a meteor.</p>
+            <p className="gesture-hint">轻触切换文案，长按 1 秒触发流星。</p>
           </>
         ) : null}
       </section>
