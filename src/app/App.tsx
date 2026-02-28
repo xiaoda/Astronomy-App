@@ -57,10 +57,6 @@ function App() {
 
   const currentTrack = musicTracks[trackIndex] ?? musicTracks[0]
   const currentQuote = quotePool[quoteIndex] ?? '你不需要赶路，先陪星光待一会儿。'
-  const trackOptions = musicTracks.map((track, index) => ({
-    label: track.title,
-    value: index,
-  }))
 
   const switchQuote = useCallback(() => {
     setQuoteIndex((currentIndex) => getNextQuoteIndex(currentIndex))
@@ -272,13 +268,9 @@ function App() {
         isOpen={isSettingsOpen}
         showQuote={showQuote}
         isMusicEnabled={isMusicEnabled}
-        selectedTrackIndex={trackIndex}
-        trackOptions={trackOptions}
         onToggleOpen={() => setIsSettingsOpen((current) => !current)}
         onShowQuoteChange={setShowQuote}
         onMusicEnabledChange={setIsMusicEnabled}
-        onTrackChange={setTrackIndex}
-        onNextTrack={() => setTrackIndex((currentIndex) => (currentIndex + 1) % musicTracks.length)}
       />
       {isDevMode && fpsSnapshot ? (
         <div className="fps-monitor" aria-label="帧率监视器">
@@ -301,3 +293,4 @@ function App() {
 }
 
 export default App
+

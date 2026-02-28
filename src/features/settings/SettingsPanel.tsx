@@ -1,21 +1,12 @@
 ﻿import type { MouseEventHandler, PointerEventHandler } from 'react'
 
-type TrackOption = {
-  label: string
-  value: number
-}
-
 type SettingsPanelProps = {
   isOpen: boolean
   showQuote: boolean
   isMusicEnabled: boolean
-  selectedTrackIndex: number
-  trackOptions: TrackOption[]
   onToggleOpen: () => void
   onShowQuoteChange: (nextValue: boolean) => void
   onMusicEnabledChange: (nextValue: boolean) => void
-  onTrackChange: (nextValue: number) => void
-  onNextTrack: () => void
 }
 
 const stopPointerPropagation: PointerEventHandler<HTMLElement> = (event) => {
@@ -30,13 +21,9 @@ function SettingsPanel({
   isOpen,
   showQuote,
   isMusicEnabled,
-  selectedTrackIndex,
-  trackOptions,
   onToggleOpen,
   onShowQuoteChange,
   onMusicEnabledChange,
-  onTrackChange,
-  onNextTrack,
 }: SettingsPanelProps) {
   return (
     <aside
@@ -75,28 +62,6 @@ function SettingsPanel({
               onChange={(event) => onMusicEnabledChange(event.target.checked)}
             />
           </label>
-          <label className="settings-item settings-item-block">
-            <span>曲目</span>
-            <select
-              className="settings-select"
-              value={selectedTrackIndex}
-              onChange={(event) => onTrackChange(Number(event.target.value))}
-            >
-              {trackOptions.map((trackOption) => (
-                <option key={trackOption.value} value={trackOption.value}>
-                  {trackOption.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="button"
-            className="settings-secondary-button"
-            disabled={!isMusicEnabled}
-            onClick={onNextTrack}
-          >
-            下一首
-          </button>
         </section>
       ) : null}
     </aside>
