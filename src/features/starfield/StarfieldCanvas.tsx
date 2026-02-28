@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react'
+﻿import { useEffect, useRef } from 'react'
 
+import './StarfieldCanvas.css'
 import { createStarfieldEngine } from './starfieldEngine'
 
 function StarfieldCanvas() {

@@ -1,4 +1,6 @@
-import type { CSSProperties } from 'react'
+﻿import type { CSSProperties } from 'react'
+
+import './MeteorTrail.css'
 
 type MeteorState = {
   id: number

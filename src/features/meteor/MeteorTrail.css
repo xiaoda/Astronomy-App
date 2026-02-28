@@ -1,0 +1,34 @@
+﻿.meteor-trail {
+  position: absolute;
+  height: 2px;
+  border-radius: 999px;
+  transform-origin: left center;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 4;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.35) 20%,
+    rgba(226, 243, 255, 0.88) 52%,
+    rgba(255, 255, 255, 0)
+  );
+  animation: meteor-fall var(--meteor-duration, 1100ms) ease-out forwards;
+}
+
+@keyframes meteor-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(var(--meteor-angle, 0deg)) scaleX(0.18);
+  }
+
+  14% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--meteor-dx, -300px), var(--meteor-dy, 200px), 0)
+      rotate(var(--meteor-angle, 0deg)) scaleX(1);
+  }
+}

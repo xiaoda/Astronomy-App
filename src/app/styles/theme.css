@@ -1,0 +1,16 @@
+:root {
+  --app-bg-base: #030711;
+  --app-bg-mid: #081326;
+  --app-bg-top: #132648;
+  --app-bg-vignette: rgba(0, 0, 0, 0.34);
+  --nebula-blue: rgba(82, 115, 201, 0.14);
+  --nebula-indigo: rgba(87, 104, 180, 0.1);
+  --text-primary: #e7ecff;
+  --text-secondary: rgba(231, 236, 255, 0.9);
+  --text-muted: rgba(231, 236, 255, 0.62);
+  --panel-border: rgba(231, 236, 255, 0.2);
+  --panel-bg: rgba(6, 12, 28, 0.84);
+  --button-border: rgba(231, 236, 255, 0.28);
+  --button-bg: rgba(11, 21, 43, 0.66);
+  --monitor-bg: rgba(7, 14, 29, 0.8);
+}

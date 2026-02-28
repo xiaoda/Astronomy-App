@@ -1,4 +1,6 @@
-﻿type WelcomePanelProps = {
+﻿import './WelcomePanel.css'
+
+type WelcomePanelProps = {
   showQuote: boolean
   currentQuote: string
   quoteRevision: number

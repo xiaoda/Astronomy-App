@@ -1,13 +1,12 @@
 ﻿import { useState } from 'react'
 
 import './App.css'
-import MeteorTrail from '../features/meteor/MeteorTrail'
-import useMeteorGestures from '../features/meteor/useMeteorGestures'
-import useBackgroundMusic from '../features/music/useBackgroundMusic'
-import useQuoteRotation from '../features/quotes/useQuoteRotation'
-import SettingsPanel from '../features/settings/SettingsPanel'
-import StarfieldCanvas from '../features/starfield/StarfieldCanvas'
-import WelcomePanel from '../features/welcome/WelcomePanel'
+import MeteorTrail, { useMeteorGestures } from '../features/meteor'
+import { useBackgroundMusic } from '../features/music'
+import { useQuoteRotation } from '../features/quotes'
+import SettingsPanel from '../features/settings'
+import StarfieldCanvas from '../features/starfield'
+import WelcomePanel from '../features/welcome'
 import { useDevFpsMonitor } from '../shared/hooks/useDevFpsMonitor'
 
 function App() {

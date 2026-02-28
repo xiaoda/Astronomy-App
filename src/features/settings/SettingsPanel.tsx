@@ -1,5 +1,7 @@
 ﻿import type { MouseEventHandler, PointerEventHandler } from 'react'
 
+import './SettingsPanel.css'
+
 type SettingsPanelProps = {
   isOpen: boolean
   showQuote: boolean

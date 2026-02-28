@@ -1,0 +1,23 @@
+﻿.fps-monitor {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 1rem);
+  left: calc(env(safe-area-inset-left, 0px) + 1rem);
+  z-index: 5;
+  border: 1px solid rgba(231, 236, 255, 0.22);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font-family: Consolas, Monaco, 'Courier New', monospace;
+  font-size: 0.76rem;
+  color: rgba(237, 242, 255, 0.92);
+  background: var(--monitor-bg);
+  pointer-events: none;
+}
+
+@media (max-width: 480px) {
+  .fps-monitor {
+    top: calc(env(safe-area-inset-top, 0px) + 0.72rem);
+    left: calc(env(safe-area-inset-left, 0px) + 0.72rem);
+    font-size: 0.7rem;
+    padding: 0.24rem 0.56rem;
+  }
+}
