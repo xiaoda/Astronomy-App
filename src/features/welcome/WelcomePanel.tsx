@@ -9,7 +9,7 @@ type WelcomePanelProps = {
 function WelcomePanel({ showQuote, currentQuote, quoteRevision }: WelcomePanelProps) {
   return (
     <section className="welcome-panel">
-      <h1 className="welcome-title">Astronomy App</h1>
+      <h1 className="welcome-title">Starrest</h1>
       {showQuote ? (
         <>
           <p key={quoteRevision} className="welcome-copy quote-fade">

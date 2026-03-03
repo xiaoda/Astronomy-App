@@ -26,7 +26,7 @@
 }
 
 .quote-fade {
-  animation: quote-fade 4.4s ease-in-out both;
+  animation: quote-fade 6.8s ease-in-out both;
 }
 
 .gesture-hint {
@@ -65,12 +65,12 @@
     transform: translateY(6px);
   }
 
-  16% {
+  6% {
     opacity: 1;
     transform: translateY(0);
   }
 
-  74% {
+  92% {
     opacity: 1;
   }
 
