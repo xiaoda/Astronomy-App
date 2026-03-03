@@ -22,8 +22,32 @@
   font-size: 0.84rem;
   letter-spacing: 0.02em;
   white-space: nowrap;
-  pointer-events: none;
+  cursor: pointer;
   animation: music-unlock-hint-fade 2.4s ease-in-out infinite;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.music-unlock-hint:hover {
+  border-color: rgba(236, 242, 255, 0.5);
+  background:
+    linear-gradient(135deg, rgba(165, 192, 255, 0.28), rgba(255, 255, 255, 0.08)),
+    rgba(12, 19, 38, 0.66);
+  box-shadow:
+    0 14px 36px rgba(6, 10, 26, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.music-unlock-hint:focus-visible {
+  outline: 2px solid rgba(230, 238, 255, 0.78);
+  outline-offset: 3px;
+}
+
+.music-unlock-hint:active {
+  transform: translateX(-50%) scale(0.98);
 }
 
 @keyframes music-unlock-hint-fade {

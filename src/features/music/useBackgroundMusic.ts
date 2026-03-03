@@ -54,6 +54,16 @@ function useBackgroundMusic(isEnabled: boolean) {
     }
   }, [isEnabled])
 
+  const unlockAudio = useCallback(async () => {
+    if (!musicTracks.length || hasUnlockedAudioRef.current) {
+      return
+    }
+
+    hasUnlockedAudioRef.current = true
+    setHasUnlockedAudio(true)
+    await playAudio()
+  }, [playAudio])
+
   useEffect(() => {
     if (!musicTracks.length) {
       return
@@ -118,33 +128,10 @@ function useBackgroundMusic(isEnabled: boolean) {
     }
   }, [currentTrack, isEnabled, playAudio])
 
-  useEffect(() => {
-    if (!musicTracks.length) {
-      return
-    }
-
-    const unlockAudio = () => {
-      if (hasUnlockedAudioRef.current) {
-        return
-      }
-
-      hasUnlockedAudioRef.current = true
-      setHasUnlockedAudio(true)
-      void playAudio()
-    }
-
-    window.addEventListener('pointerdown', unlockAudio, true)
-    window.addEventListener('keydown', unlockAudio, true)
-
-    return () => {
-      window.removeEventListener('pointerdown', unlockAudio, true)
-      window.removeEventListener('keydown', unlockAudio, true)
-    }
-  }, [playAudio])
-
   return {
     currentTrack,
-    isAwaitingUserGesture: isEnabled && musicTracks.length > 0 && !hasUnlockedAudio,
+    shouldShowUnlockButton: musicTracks.length > 0 && !hasUnlockedAudio,
+    unlockAudio,
   }
 }
 
