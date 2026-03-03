@@ -1,4 +1,4 @@
-﻿import { useRef, useState, type PointerEventHandler } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import type { MeteorState } from './MeteorTrail'
 
@@ -7,6 +7,7 @@ const TAP_MAX_DURATION_MS = 280
 const TAP_COOLDOWN_MS = 260
 const METEOR_COOLDOWN_MS = 1000
 const MOVE_CANCEL_THRESHOLD_PX = 18
+const INTERACTIVE_TARGET_SELECTOR = '.settings-root, .music-unlock-hint'
 
 type UseMeteorGesturesOptions = {
   canTapTriggerAction: boolean
@@ -65,88 +66,95 @@ function useMeteorGestures({ canTapTriggerAction, onTap }: UseMeteorGesturesOpti
     return true
   }
 
-  const handlePointerDown: PointerEventHandler<HTMLElement> = (event) => {
-    if (pointerIdRef.current !== null) {
-      return
+  useEffect(() => {
+    const isInteractiveTarget = (target: EventTarget | null) => {
+      if (!(target instanceof Element)) {
+        return false
+      }
+
+      return target.closest(INTERACTIVE_TARGET_SELECTOR) !== null
     }
 
-    if (event.pointerType === 'mouse' && event.button !== 0) {
-      return
+    const handlePointerDown = (event: PointerEvent) => {
+      if (pointerIdRef.current !== null || isInteractiveTarget(event.target)) {
+        return
+      }
+
+      if (event.pointerType === 'mouse' && event.button !== 0) {
+        return
+      }
+
+      pointerIdRef.current = event.pointerId
+      pressStartedAtRef.current = performance.now()
+      pointerStartRef.current = { x: event.clientX, y: event.clientY }
+      longPressTriggeredRef.current = false
+
+      longPressTimerRef.current = window.setTimeout(() => {
+        if (pointerIdRef.current !== event.pointerId) {
+          return
+        }
+
+        longPressTriggeredRef.current = triggerMeteor(performance.now())
+      }, LONG_PRESS_DURATION_MS)
     }
 
-    pointerIdRef.current = event.pointerId
-    pressStartedAtRef.current = performance.now()
-    pointerStartRef.current = { x: event.clientX, y: event.clientY }
-    longPressTriggeredRef.current = false
+    const handlePointerMove = (event: PointerEvent) => {
+      if (pointerIdRef.current !== event.pointerId || longPressTimerRef.current === null) {
+        return
+      }
 
-    event.currentTarget.setPointerCapture(event.pointerId)
+      const moveX = Math.abs(event.clientX - pointerStartRef.current.x)
+      const moveY = Math.abs(event.clientY - pointerStartRef.current.y)
 
-    longPressTimerRef.current = window.setTimeout(() => {
+      if (moveX > MOVE_CANCEL_THRESHOLD_PX || moveY > MOVE_CANCEL_THRESHOLD_PX) {
+        clearLongPressTimer()
+      }
+    }
+
+    const handlePointerUp = (event: PointerEvent) => {
       if (pointerIdRef.current !== event.pointerId) {
         return
       }
 
-      longPressTriggeredRef.current = triggerMeteor(performance.now())
-    }, LONG_PRESS_DURATION_MS)
-  }
+      const now = performance.now()
+      const duration = now - pressStartedAtRef.current
+      const isTap = !longPressTriggeredRef.current && duration <= TAP_MAX_DURATION_MS
 
-  const handlePointerMove: PointerEventHandler<HTMLElement> = (event) => {
-    if (pointerIdRef.current !== event.pointerId || longPressTimerRef.current === null) {
-      return
+      clearLongPressTimer()
+
+      if (isTap && canTapTriggerAction && now - lastTapAtRef.current >= TAP_COOLDOWN_MS) {
+        lastTapAtRef.current = now
+        onTap()
+      }
+
+      resetGesture()
     }
 
-    const moveX = Math.abs(event.clientX - pointerStartRef.current.x)
-    const moveY = Math.abs(event.clientY - pointerStartRef.current.y)
+    const handlePointerCancel = (event: PointerEvent) => {
+      if (pointerIdRef.current !== event.pointerId) {
+        return
+      }
 
-    if (moveX > MOVE_CANCEL_THRESHOLD_PX || moveY > MOVE_CANCEL_THRESHOLD_PX) {
+      resetGesture()
+    }
+
+    window.addEventListener('pointerdown', handlePointerDown, true)
+    window.addEventListener('pointermove', handlePointerMove, true)
+    window.addEventListener('pointerup', handlePointerUp, true)
+    window.addEventListener('pointercancel', handlePointerCancel, true)
+
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerDown, true)
+      window.removeEventListener('pointermove', handlePointerMove, true)
+      window.removeEventListener('pointerup', handlePointerUp, true)
+      window.removeEventListener('pointercancel', handlePointerCancel, true)
       clearLongPressTimer()
     }
-  }
-
-  const handlePointerUp: PointerEventHandler<HTMLElement> = (event) => {
-    if (pointerIdRef.current !== event.pointerId) {
-      return
-    }
-
-    const now = performance.now()
-    const duration = now - pressStartedAtRef.current
-    const isTap = !longPressTriggeredRef.current && duration <= TAP_MAX_DURATION_MS
-
-    clearLongPressTimer()
-
-    if (isTap && canTapTriggerAction && now - lastTapAtRef.current >= TAP_COOLDOWN_MS) {
-      lastTapAtRef.current = now
-      onTap()
-    }
-
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId)
-    }
-
-    resetGesture()
-  }
-
-  const handlePointerCancel: PointerEventHandler<HTMLElement> = (event) => {
-    if (pointerIdRef.current !== event.pointerId) {
-      return
-    }
-
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId)
-    }
-
-    resetGesture()
-  }
+  }, [canTapTriggerAction, onTap])
 
   return {
     meteor,
     clearMeteor: () => setMeteor(null),
-    gestureHandlers: {
-      onPointerDown: handlePointerDown,
-      onPointerMove: handlePointerMove,
-      onPointerUp: handlePointerUp,
-      onPointerCancel: handlePointerCancel,
-    },
   }
 }
 

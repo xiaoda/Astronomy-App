@@ -17,17 +17,18 @@ const stopClickPropagation: MouseEventHandler<HTMLElement> = (event) => {
   event.stopPropagation()
 }
 
+const noop = () => {}
+
 function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [showQuote, setShowQuote] = useState(true)
   const [isMusicEnabled, setIsMusicEnabled] = useState(false)
 
-  const { currentQuote, quoteRevision, switchQuote } = useQuoteRotation(showQuote)
-  const { meteor, clearMeteor, gestureHandlers } = useMeteorGestures({
-    canTapTriggerAction: showQuote,
-    onTap: switchQuote,
+  const { currentQuote, quoteRevision } = useQuoteRotation(showQuote)
+  const { meteor, clearMeteor } = useMeteorGestures({
+    canTapTriggerAction: false,
+    onTap: noop,
   })
-
   const { shouldShowUnlockButton, unlockAudio } = useBackgroundMusic(isMusicEnabled)
 
   return (
@@ -35,7 +36,6 @@ function App() {
       className="app-shell"
       aria-label="天文静谧体验"
       onClick={() => setIsSettingsOpen(false)}
-      {...gestureHandlers}
     >
       <StarfieldCanvas />
       <div className="nebula-layer" aria-hidden="true" />
