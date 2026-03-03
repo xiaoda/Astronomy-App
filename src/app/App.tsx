@@ -7,14 +7,11 @@ import { useQuoteRotation } from '../features/quotes'
 import SettingsPanel from '../features/settings'
 import StarfieldCanvas from '../features/starfield'
 import WelcomePanel from '../features/welcome'
-import { useDevFpsMonitor } from '../shared/hooks/useDevFpsMonitor'
 
 function App() {
-  const isDevMode = import.meta.env.DEV
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [showQuote, setShowQuote] = useState(true)
   const [isMusicEnabled, setIsMusicEnabled] = useState(true)
-  const fpsSnapshot = useDevFpsMonitor(isDevMode)
 
   const { currentQuote, quoteRevision, switchQuote } = useQuoteRotation(showQuote)
   const { meteor, clearMeteor, gestureHandlers } = useMeteorGestures({
@@ -22,13 +19,18 @@ function App() {
     onTap: switchQuote,
   })
 
-  useBackgroundMusic(isMusicEnabled)
+  const { isAwaitingUserGesture } = useBackgroundMusic(isMusicEnabled)
 
   return (
     <main className="app-shell" aria-label="天文静谧体验" {...gestureHandlers}>
       <StarfieldCanvas />
       <div className="nebula-layer" aria-hidden="true" />
       <MeteorTrail meteor={meteor} onDone={clearMeteor} />
+      {isAwaitingUserGesture ? (
+        <div className="music-unlock-hint" aria-live="polite">
+          轻点任意位置，开启背景音乐
+        </div>
+      ) : null}
       <SettingsPanel
         isOpen={isSettingsOpen}
         showQuote={showQuote}
@@ -37,11 +39,6 @@ function App() {
         onShowQuoteChange={setShowQuote}
         onMusicEnabledChange={setIsMusicEnabled}
       />
-      {isDevMode && fpsSnapshot ? (
-        <div className="fps-monitor" aria-label="帧率监视器">
-          FPS {fpsSnapshot.fps} | {fpsSnapshot.frameMs}ms
-        </div>
-      ) : null}
       <WelcomePanel
         showQuote={showQuote}
         currentQuote={currentQuote}
