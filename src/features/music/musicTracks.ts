@@ -28,10 +28,6 @@ const musicTracks: MusicTrack[] = [
     title: 'Interstellar Space',
     src: '/audio/interstellar-space.mp3',
   },
-  {
-    title: 'Interstellar Hypnosis Dark Ambient',
-    src: '/audio/interstellar-hypnosis-dark-ambient.mp3',
-  },
 ]
 
 export default musicTracks
