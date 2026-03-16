@@ -42,7 +42,7 @@
 }
 
 .quote-fade {
-  animation: quote-fade 6.8s ease-in-out both;
+  animation: quote-fade 520ms ease-out both;
 }
 
 .gesture-hint {
@@ -98,21 +98,12 @@
 
 @keyframes quote-fade {
   0% {
-    opacity: 0;
+    opacity: 0.38;
     transform: translateY(6px);
   }
 
-  6% {
+  100% {
     opacity: 1;
     transform: translateY(0);
-  }
-
-  92% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateY(-4px);
   }
 }

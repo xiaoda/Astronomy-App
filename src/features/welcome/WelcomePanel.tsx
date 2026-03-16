@@ -13,7 +13,7 @@ const formatQuoteForDisplay = (quote: string) => {
     return [quote]
   }
 
-  return [quote.slice(0, commaIndex + 1), quote.slice(commaIndex + 1)]
+  return [quote.slice(0, commaIndex), quote.slice(commaIndex + 1)]
 }
 
 function WelcomePanel({ showQuote, currentQuote, quoteRevision }: WelcomePanelProps) {
@@ -33,7 +33,7 @@ function WelcomePanel({ showQuote, currentQuote, quoteRevision }: WelcomePanelPr
               </span>
             ))}
           </p>
-          <p className="gesture-hint">长按 1 秒触发流星。</p>
+          <p className="gesture-hint">长按 1 秒触发流星</p>
         </>
       ) : null}
     </section>

@@ -1,4 +1,4 @@
-﻿import type { MouseEventHandler, PointerEventHandler } from 'react'
+import type { CSSProperties, MouseEventHandler, PointerEventHandler } from 'react'
 
 import './SettingsPanel.css'
 
@@ -11,9 +11,14 @@ type SettingsPanelProps = {
   onMusicEnabledChange: (nextValue: boolean) => void
 }
 
-type SettingsToggleRowProps = {
-  title: string
-  checked: boolean
+type SettingsSegmentedRowProps = {
+  groupLabel: string
+  name: string
+  options: readonly {
+    label: string
+    value: boolean
+  }[]
+  selectedValue: boolean
   onChange: (nextValue: boolean) => void
 }
 
@@ -25,24 +30,44 @@ const stopClickPropagation: MouseEventHandler<HTMLElement> = (event) => {
   event.stopPropagation()
 }
 
-function SettingsToggleRow({ title, checked, onChange }: SettingsToggleRowProps) {
+function SettingsSegmentedRow({
+  groupLabel,
+  name,
+  options,
+  selectedValue,
+  onChange,
+}: SettingsSegmentedRowProps) {
+  const selectedIndex = options.findIndex((option) => option.value === selectedValue)
+  const segmentedStyle = {
+    '--selected-index': selectedIndex < 0 ? 0 : selectedIndex,
+    '--segment-count': options.length,
+  } as CSSProperties
+
   return (
-    <label className="settings-item">
-      <span className="settings-item-title">{title}</span>
-      <span className="settings-switch">
-        <input
-          type="checkbox"
-          role="switch"
-          className="settings-switch-input"
-          checked={checked}
-          aria-label={title}
-          onChange={(event) => onChange(event.target.checked)}
-        />
-        <span className="settings-switch-track" aria-hidden="true">
-          <span className="settings-switch-thumb" />
-        </span>
-      </span>
-    </label>
+    <div
+      className="settings-item settings-segmented"
+      role="radiogroup"
+      aria-label={groupLabel}
+      style={segmentedStyle}
+    >
+      <span className="settings-segmented-thumb" aria-hidden="true" />
+      {options.map((option) => (
+        <label
+          key={`${name}-${String(option.value)}`}
+          className={`settings-choice${selectedValue === option.value ? ' is-selected' : ''}`}
+        >
+          <input
+            type="radio"
+            name={name}
+            className="settings-choice-input"
+            checked={selectedValue === option.value}
+            aria-label={option.label}
+            onChange={() => onChange(option.value)}
+          />
+          <span className="settings-choice-label">{option.label}</span>
+        </label>
+      ))}
+    </div>
   )
 }
 
@@ -93,14 +118,24 @@ function SettingsPanel({
 
       {isOpen ? (
         <section id="app-settings-panel" className="settings-panel" aria-label="显示设置">
-          <SettingsToggleRow
-            title="显示文案"
-            checked={showQuote}
+          <SettingsSegmentedRow
+            groupLabel="文案显示"
+            name="quote-visibility"
+            options={[
+              { label: '文案开', value: true },
+              { label: '文案关', value: false },
+            ]}
+            selectedValue={showQuote}
             onChange={onShowQuoteChange}
           />
-          <SettingsToggleRow
-            title="背景音乐"
-            checked={isMusicEnabled}
+          <SettingsSegmentedRow
+            groupLabel="背景音乐"
+            name="background-music"
+            options={[
+              { label: '音乐开', value: true },
+              { label: '音乐关', value: false },
+            ]}
+            selectedValue={isMusicEnabled}
             onChange={onMusicEnabledChange}
           />
         </section>

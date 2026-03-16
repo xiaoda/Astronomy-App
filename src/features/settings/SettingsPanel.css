@@ -55,95 +55,89 @@
 
 .settings-panel {
   min-width: 186px;
-  border: 1px solid var(--panel-border);
-  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
   padding: 0.64rem 0.68rem;
-  background: var(--panel-bg);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012)),
+    var(--panel-bg);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 14px 36px rgba(5, 10, 24, 0.26);
   backdrop-filter: blur(6px);
 }
 
-.settings-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  color: rgba(237, 242, 255, 0.9);
-  font-size: 0.88rem;
-  cursor: pointer;
-}
-
 .settings-item + .settings-item {
-  margin-top: 0.4rem;
+  margin-top: 0.42rem;
 }
 
-.settings-item-title {
-  flex: 0 0 auto;
-  line-height: 1.2;
-}
-
-.settings-switch {
+.settings-segmented {
+  --selected-index: 0;
+  --segment-count: 2;
   position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.12rem;
+  padding: 0.14rem;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(18, 28, 55, 0.54), rgba(10, 18, 37, 0.5)),
+    rgba(255, 255, 255, 0.04);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.04),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.12);
+}
+
+.settings-segmented-thumb {
+  position: absolute;
+  top: 0.14rem;
+  bottom: 0.14rem;
+  left: 0.14rem;
+  width: calc((100% - 0.28rem) / var(--segment-count));
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(210, 224, 255, 0.92), rgba(163, 187, 242, 0.78));
+  box-shadow:
+    0 7px 16px rgba(8, 13, 30, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34);
+  transform: translateX(calc(var(--selected-index) * 100%));
+  transition: transform 220ms ease;
+}
+
+.settings-choice {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0.38rem 0.44rem;
   border-radius: 999px;
-  flex: 0 0 auto;
+  cursor: pointer;
+  transition: color 160ms ease;
 }
 
-.settings-switch-input {
+.settings-choice-input {
   position: absolute;
   inset: 0;
   opacity: 0;
   cursor: pointer;
 }
 
-.settings-switch-track {
-  display: inline-flex;
-  align-items: center;
-  width: 2.7rem;
-  height: 1.5rem;
-  padding: 0.16rem;
-  border: 1px solid rgba(177, 194, 236, 0.24);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.05),
-    0 8px 18px rgba(10, 18, 42, 0.16);
-  transition:
-    border-color 160ms ease,
-    background-color 160ms ease,
-    box-shadow 160ms ease;
+.settings-choice-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: rgba(196, 210, 243, 0.82);
+  transition: color 160ms ease;
 }
 
-.settings-switch-thumb {
-  width: 1.16rem;
-  height: 1.16rem;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.98), rgba(230, 238, 255, 0.86));
-  box-shadow:
-    0 4px 12px rgba(8, 12, 28, 0.28),
-    inset 0 1px 1px rgba(255, 255, 255, 0.4);
-  transition: transform 180ms ease;
+.settings-choice.is-selected .settings-choice-label {
+  color: rgba(15, 23, 43, 0.92);
 }
 
-.settings-item:hover .settings-switch-track {
-  border-color: rgba(203, 217, 255, 0.4);
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.settings-switch-input:checked + .settings-switch-track {
-  border-color: rgba(216, 227, 255, 0.6);
-  background: linear-gradient(135deg, rgba(151, 182, 255, 0.52), rgba(99, 136, 242, 0.42));
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.12),
-    0 10px 22px rgba(28, 49, 108, 0.28);
-}
-
-.settings-switch-input:checked + .settings-switch-track .settings-switch-thumb {
-  transform: translateX(1.16rem);
-}
-
-.settings-switch-input:focus-visible + .settings-switch-track {
+.settings-choice:has(.settings-choice-input:focus-visible) {
   outline: 2px solid rgba(226, 235, 255, 0.7);
   outline-offset: 2px;
 }
@@ -160,8 +154,13 @@
     backdrop-filter: none;
   }
 
-  .settings-item {
-    font-size: 0.82rem;
+  .settings-choice {
+    min-height: 1.86rem;
+    padding: 0.34rem 0.38rem;
+  }
+
+  .settings-choice-label {
+    font-size: 0.72rem;
   }
 }
 

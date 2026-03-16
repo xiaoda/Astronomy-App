@@ -37,9 +37,9 @@ type StarBuffer = {
 }
 
 const TOUCH_VIEWPORT_MAX = 920
-const DEFAULT_DENSITY = 0.00005
-const DEFAULT_MIN_STARS = 72
-const DEFAULT_MAX_STARS = 230
+const DEFAULT_DENSITY = 0.00004
+const DEFAULT_MIN_STARS = 56
+const DEFAULT_MAX_STARS = 180
 
 const LAYERS: readonly StarLayerConfig[] = [
   {
@@ -48,8 +48,8 @@ const LAYERS: readonly StarLayerConfig[] = [
     alphaRange: [0.22, 0.62],
     twinkleSpeedRange: [0.8, 1.5],
     twinkleAmplitudeRange: [0.1, 0.22],
-    driftRange: [2, 6],
-    driftSpeedRange: [0.12, 0.2],
+    driftRange: [4, 10],
+    driftSpeedRange: [0.18, 0.3],
   },
   {
     ratio: 0.33,
@@ -57,8 +57,8 @@ const LAYERS: readonly StarLayerConfig[] = [
     alphaRange: [0.35, 0.8],
     twinkleSpeedRange: [1, 1.8],
     twinkleAmplitudeRange: [0.2, 0.35],
-    driftRange: [4, 9],
-    driftSpeedRange: [0.08, 0.16],
+    driftRange: [7, 15],
+    driftSpeedRange: [0.12, 0.22],
   },
   {
     ratio: 0.17,
@@ -66,8 +66,8 @@ const LAYERS: readonly StarLayerConfig[] = [
     alphaRange: [0.5, 1],
     twinkleSpeedRange: [1.2, 2.2],
     twinkleAmplitudeRange: [0.28, 0.45],
-    driftRange: [7, 14],
-    driftSpeedRange: [0.05, 0.11],
+    driftRange: [10, 20],
+    driftSpeedRange: [0.07, 0.13],
   },
 ]
 
@@ -90,9 +90,9 @@ const resolveRenderProfile = (viewportWidth: number, viewportHeight: number): Re
   if (isLowPowerDevice) {
     return {
       tier: 'conserve',
-      density: 0.000024,
-      minStars: 36,
-      maxStars: 120,
+      density: 0.000018,
+      minStars: 28,
+      maxStars: 90,
       maxPixelRatio: 1,
       targetFps: 30,
     }
@@ -101,9 +101,9 @@ const resolveRenderProfile = (viewportWidth: number, viewportHeight: number): Re
   if (mobileLikeViewport) {
     return {
       tier: 'balanced',
-      density: 0.000035,
-      minStars: 48,
-      maxStars: 170,
+      density: 0.000028,
+      minStars: 38,
+      maxStars: 130,
       maxPixelRatio: 1.15,
       targetFps: 45,
     }
