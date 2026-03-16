@@ -11,12 +11,39 @@ type SettingsPanelProps = {
   onMusicEnabledChange: (nextValue: boolean) => void
 }
 
+type SettingsToggleRowProps = {
+  title: string
+  checked: boolean
+  onChange: (nextValue: boolean) => void
+}
+
 const stopPointerPropagation: PointerEventHandler<HTMLElement> = (event) => {
   event.stopPropagation()
 }
 
 const stopClickPropagation: MouseEventHandler<HTMLElement> = (event) => {
   event.stopPropagation()
+}
+
+function SettingsToggleRow({ title, checked, onChange }: SettingsToggleRowProps) {
+  return (
+    <label className="settings-item">
+      <span className="settings-item-title">{title}</span>
+      <span className="settings-switch">
+        <input
+          type="checkbox"
+          role="switch"
+          className="settings-switch-input"
+          checked={checked}
+          aria-label={title}
+          onChange={(event) => onChange(event.target.checked)}
+        />
+        <span className="settings-switch-track" aria-hidden="true">
+          <span className="settings-switch-thumb" />
+        </span>
+      </span>
+    </label>
+  )
 }
 
 function SettingsPanel({
@@ -48,56 +75,16 @@ function SettingsPanel({
 
       {isOpen ? (
         <section id="app-settings-panel" className="settings-panel" aria-label="显示设置">
-          <div className="settings-item">
-            <span className="settings-item-title">显示文案</span>
-            <div className="settings-radio-group" role="radiogroup" aria-label="显示文案">
-              <label className={`settings-radio${showQuote ? ' is-selected' : ''}`}>
-                <input
-                  type="radio"
-                  name="quote-visibility"
-                  checked={showQuote}
-                  onChange={() => onShowQuoteChange(true)}
-                />
-                <span className="settings-radio-dot" aria-hidden="true" />
-                <span className="settings-radio-text">显示</span>
-              </label>
-              <label className={`settings-radio${!showQuote ? ' is-selected' : ''}`}>
-                <input
-                  type="radio"
-                  name="quote-visibility"
-                  checked={!showQuote}
-                  onChange={() => onShowQuoteChange(false)}
-                />
-                <span className="settings-radio-dot" aria-hidden="true" />
-                <span className="settings-radio-text">隐藏</span>
-              </label>
-            </div>
-          </div>
-          <div className="settings-item">
-            <span className="settings-item-title">背景音乐</span>
-            <div className="settings-radio-group" role="radiogroup" aria-label="背景音乐">
-              <label className={`settings-radio${isMusicEnabled ? ' is-selected' : ''}`}>
-                <input
-                  type="radio"
-                  name="background-music"
-                  checked={isMusicEnabled}
-                  onChange={() => onMusicEnabledChange(true)}
-                />
-                <span className="settings-radio-dot" aria-hidden="true" />
-                <span className="settings-radio-text">开启</span>
-              </label>
-              <label className={`settings-radio${!isMusicEnabled ? ' is-selected' : ''}`}>
-                <input
-                  type="radio"
-                  name="background-music"
-                  checked={!isMusicEnabled}
-                  onChange={() => onMusicEnabledChange(false)}
-                />
-                <span className="settings-radio-dot" aria-hidden="true" />
-                <span className="settings-radio-text">关闭</span>
-              </label>
-            </div>
-          </div>
+          <SettingsToggleRow
+            title="显示文案"
+            checked={showQuote}
+            onChange={onShowQuoteChange}
+          />
+          <SettingsToggleRow
+            title="背景音乐"
+            checked={isMusicEnabled}
+            onChange={onMusicEnabledChange}
+          />
         </section>
       ) : null}
     </aside>
