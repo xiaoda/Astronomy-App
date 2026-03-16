@@ -1,12 +1,17 @@
 import type { CSSProperties, MouseEventHandler, PointerEventHandler } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import './SettingsPanel.css'
+
+const AUTO_CLOSE_DELAY_MS = 10000
+const PANEL_EXIT_DURATION_MS = 220
 
 type SettingsPanelProps = {
   isOpen: boolean
   showQuote: boolean
   isMusicEnabled: boolean
   onToggleOpen: () => void
+  onRequestClose: () => void
   onShowQuoteChange: (nextValue: boolean) => void
   onMusicEnabledChange: (nextValue: boolean) => void
 }
@@ -76,10 +81,75 @@ function SettingsPanel({
   showQuote,
   isMusicEnabled,
   onToggleOpen,
+  onRequestClose,
   onShowQuoteChange,
   onMusicEnabledChange,
 }: SettingsPanelProps) {
+  const [isPanelMounted, setIsPanelMounted] = useState(isOpen)
+  const [isPanelVisible, setIsPanelVisible] = useState(isOpen)
+  const autoCloseTimerRef = useRef<number | null>(null)
+  const unmountTimerRef = useRef<number | null>(null)
   const triggerLabel = isOpen ? '收起设置面板' : '打开设置面板'
+
+  const clearAutoCloseTimer = useCallback(() => {
+    if (autoCloseTimerRef.current !== null) {
+      window.clearTimeout(autoCloseTimerRef.current)
+      autoCloseTimerRef.current = null
+    }
+  }, [])
+
+  const clearUnmountTimer = useCallback(() => {
+    if (unmountTimerRef.current !== null) {
+      window.clearTimeout(unmountTimerRef.current)
+      unmountTimerRef.current = null
+    }
+  }, [])
+
+  const resetAutoCloseTimer = useCallback(() => {
+    if (!isOpen) {
+      return
+    }
+
+    clearAutoCloseTimer()
+    autoCloseTimerRef.current = window.setTimeout(() => {
+      onRequestClose()
+    }, AUTO_CLOSE_DELAY_MS)
+  }, [clearAutoCloseTimer, isOpen, onRequestClose])
+
+  useEffect(() => {
+    return () => {
+      clearAutoCloseTimer()
+      clearUnmountTimer()
+    }
+  }, [clearAutoCloseTimer, clearUnmountTimer])
+
+  useEffect(() => {
+    if (isOpen) {
+      clearUnmountTimer()
+      setIsPanelMounted(true)
+
+      const frameId = window.requestAnimationFrame(() => {
+        setIsPanelVisible(true)
+      })
+
+      resetAutoCloseTimer()
+
+      return () => {
+        window.cancelAnimationFrame(frameId)
+      }
+    }
+
+    clearAutoCloseTimer()
+    setIsPanelVisible(false)
+    clearUnmountTimer()
+    unmountTimerRef.current = window.setTimeout(() => {
+      setIsPanelMounted(false)
+    }, PANEL_EXIT_DURATION_MS)
+  }, [clearAutoCloseTimer, clearUnmountTimer, isOpen, resetAutoCloseTimer])
+
+  const handlePanelActivity = () => {
+    resetAutoCloseTimer()
+  }
 
   return (
     <aside
@@ -116,8 +186,17 @@ function SettingsPanel({
         </svg>
       </button>
 
-      {isOpen ? (
-        <section id="app-settings-panel" className="settings-panel" aria-label="显示设置">
+      {isPanelMounted ? (
+        <section
+          id="app-settings-panel"
+          className={`settings-panel${isPanelVisible ? ' is-open' : ''}`}
+          aria-label="显示设置"
+          aria-hidden={!isPanelVisible}
+          onPointerDown={handlePanelActivity}
+          onKeyDown={handlePanelActivity}
+          onFocus={handlePanelActivity}
+          onChange={handlePanelActivity}
+        >
           <SettingsSegmentedRow
             groupLabel="文案显示"
             name="quote-visibility"

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import quotePool from './quotePool'
 
-const QUOTE_SWITCH_INTERVAL_MS = 7000
+const QUOTE_SWITCH_INTERVAL_MS = 10_000
 const FALLBACK_QUOTE = '你不需要赶路，先陪星光待一会儿'
 
 const bumpRevision = (currentRevision: number) => currentRevision + 1

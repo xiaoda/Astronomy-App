@@ -38,10 +38,10 @@ function useBackgroundMusic(isEnabled: boolean) {
 
   const currentTrack = musicTracks[currentTrackIndex] ?? musicTracks[0]
 
-  const playAudio = useCallback(async () => {
+  const playAudio = useCallback(async (shouldForcePlay = false) => {
     const audio = audioRef.current
 
-    if (!audio || !isEnabled) {
+    if (!audio || (!isEnabled && !shouldForcePlay)) {
       return
     }
 
@@ -54,15 +54,15 @@ function useBackgroundMusic(isEnabled: boolean) {
     }
   }, [isEnabled])
 
-  const unlockAudio = useCallback(async () => {
+  const unlockAudio = useCallback(async (shouldPlay = isEnabled) => {
     if (!musicTracks.length || hasUnlockedAudioRef.current) {
       return
     }
 
     hasUnlockedAudioRef.current = true
     setHasUnlockedAudio(true)
-    await playAudio()
-  }, [playAudio])
+    await playAudio(shouldPlay)
+  }, [isEnabled, playAudio])
 
   useEffect(() => {
     if (!musicTracks.length) {

@@ -31,12 +31,16 @@ function App() {
   })
   const { shouldShowUnlockButton, unlockAudio } = useBackgroundMusic(isMusicEnabled)
 
+  const handleMusicEnabledChange = (nextValue: boolean) => {
+    setIsMusicEnabled(nextValue)
+
+    if (nextValue) {
+      void unlockAudio(true)
+    }
+  }
+
   return (
-    <main
-      className="app-shell"
-      aria-label="天文静谧体验"
-      onClick={() => setIsSettingsOpen(false)}
-    >
+    <main className="app-shell" aria-label="天文静谧体验" onClick={() => setIsSettingsOpen(false)}>
       <StarfieldCanvas />
       <div className="nebula-layer" aria-hidden="true" />
       <MeteorTrail meteor={meteor} onDone={clearMeteor} />
@@ -52,7 +56,7 @@ function App() {
           onClick={(event) => {
             stopClickPropagation(event)
             setIsMusicEnabled(true)
-            void unlockAudio()
+            void unlockAudio(true)
           }}
         >
           点击开启背景音乐
@@ -63,8 +67,9 @@ function App() {
         showQuote={showQuote}
         isMusicEnabled={isMusicEnabled}
         onToggleOpen={() => setIsSettingsOpen((current) => !current)}
+        onRequestClose={() => setIsSettingsOpen(false)}
         onShowQuoteChange={setShowQuote}
-        onMusicEnabledChange={setIsMusicEnabled}
+        onMusicEnabledChange={handleMusicEnabledChange}
       />
       <WelcomePanel
         showQuote={showQuote}

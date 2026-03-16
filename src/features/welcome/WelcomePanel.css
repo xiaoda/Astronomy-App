@@ -13,18 +13,26 @@
   pointer-events: none;
 }
 
-.welcome-copy {
+.welcome-copy-shell {
   --welcome-copy-line-height: 1.9;
   margin: 0 auto;
+  position: relative;
+  width: min(24ch, 100%);
+  min-height: calc(1em * var(--welcome-copy-line-height) * 2);
+  font-size: clamp(1.3rem, 3.4vw, 1.95rem);
+  letter-spacing: 0.08em;
+}
+
+.welcome-copy {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: calc(1em * var(--welcome-copy-line-height) * 2);
-  max-width: min(24ch, 100%);
-  font-size: clamp(1.3rem, 3.4vw, 1.95rem);
+  font-size: 1em;
   line-height: var(--welcome-copy-line-height);
-  letter-spacing: 0.08em;
+  letter-spacing: inherit;
   color: rgba(239, 243, 255, 0.96);
   text-shadow:
     0 0 18px rgba(163, 191, 255, 0.12),
@@ -38,11 +46,17 @@
 }
 
 .welcome-copy.is-one-line {
-  max-width: min(18ch, 100%);
+  inset-inline: 50%;
+  width: min(18ch, 100%);
+  transform: translateX(-50%);
 }
 
-.quote-fade {
-  animation: quote-fade 520ms ease-out both;
+.quote-fade-in {
+  animation: quote-fade-in 2600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.quote-fade-out {
+  animation: quote-fade-out 2600ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 .gesture-hint {
@@ -74,14 +88,18 @@
 
   .welcome-copy {
     --welcome-copy-line-height: 1.78;
+  }
+
+  .welcome-copy-shell {
+    --welcome-copy-line-height: 1.78;
+    width: min(22ch, 100%);
     min-height: calc(1em * var(--welcome-copy-line-height) * 2);
-    max-width: min(22ch, 100%);
     font-size: clamp(1.12rem, 4.9vw, 1.42rem);
     letter-spacing: 0.06em;
   }
 
   .welcome-copy.is-one-line {
-    max-width: min(16ch, 100%);
+    width: min(16ch, 100%);
   }
 
   .gesture-hint {
@@ -96,14 +114,26 @@
   }
 }
 
-@keyframes quote-fade {
+@keyframes quote-fade-in {
   0% {
-    opacity: 0.38;
-    transform: translateY(6px);
+    opacity: 0.18;
+    transform: translateY(10px);
   }
 
   100% {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes quote-fade-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
   }
 }
