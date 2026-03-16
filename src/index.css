@@ -4,6 +4,16 @@
   box-sizing: border-box;
 }
 
+:root {
+  --font-ui:
+    'Noto Serif SC',
+    'Source Han Serif SC',
+    'Songti SC',
+    'STSong',
+    'SimSun',
+    serif;
+}
+
 html,
 body,
 #root {
@@ -18,8 +28,17 @@ body {
     radial-gradient(circle at 50% 120%, rgba(0, 0, 0, 0.5), transparent 40%),
     radial-gradient(circle at 28% 16%, #0d1d38 0%, #05101e 38%, #01040c 100%);
   color: #e7ecff;
-  font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-family: var(--font-ui);
+  font-weight: 400;
+  letter-spacing: 0.015em;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
