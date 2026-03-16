@@ -46,9 +46,7 @@
 }
 
 .welcome-copy.is-one-line {
-  inset-inline: 50%;
-  width: min(18ch, 100%);
-  transform: translateX(-50%);
+  width: 100%;
 }
 
 .quote-fade-in {
@@ -99,7 +97,7 @@
   }
 
   .welcome-copy.is-one-line {
-    width: min(16ch, 100%);
+    width: 100%;
   }
 
   .gesture-hint {

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import musicTracks from './musicTracks'
 
 const MUSIC_VOLUME = 0.26
+const MUSIC_FADE_DURATION_MS = 650
 
 function createShuffledTrackOrder(trackCount: number, previousLastTrackIndex?: number) {
   const trackOrder = Array.from({ length: trackCount }, (_, index) => index)
@@ -34,35 +35,138 @@ function useBackgroundMusic(isEnabled: boolean) {
   }))
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const hasUnlockedAudioRef = useRef(false)
+  const fadeFrameRef = useRef<number | null>(null)
+  const fadeRunIdRef = useRef(0)
   const currentTrackIndex = playbackState.trackOrder[playbackState.trackPosition] ?? 0
 
   const currentTrack = musicTracks[currentTrackIndex] ?? musicTracks[0]
 
-  const playAudio = useCallback(async (shouldForcePlay = false) => {
+  const stopFade = useCallback(() => {
+    if (fadeFrameRef.current !== null) {
+      window.cancelAnimationFrame(fadeFrameRef.current)
+      fadeFrameRef.current = null
+    }
+  }, [])
+
+  const ensureAudioPlayback = useCallback(async () => {
     const audio = audioRef.current
 
-    if (!audio || (!isEnabled && !shouldForcePlay)) {
-      return
+    if (!audio) {
+      return false
     }
-
-    audio.volume = MUSIC_VOLUME
 
     try {
       await audio.play()
+      return true
     } catch {
-      // Ignore autoplay rejections until the next user interaction.
+      return false
     }
-  }, [isEnabled])
+  }, [])
 
-  const unlockAudio = useCallback(async (shouldPlay = isEnabled) => {
-    if (!musicTracks.length || hasUnlockedAudioRef.current) {
-      return
-    }
+  const fadeAudioVolume = useCallback(
+    async (targetVolume: number, { pauseOnComplete = false } = {}) => {
+      const audio = audioRef.current
 
-    hasUnlockedAudioRef.current = true
-    setHasUnlockedAudio(true)
-    await playAudio(shouldPlay)
-  }, [isEnabled, playAudio])
+      if (!audio) {
+        return
+      }
+
+      fadeRunIdRef.current += 1
+      const fadeRunId = fadeRunIdRef.current
+
+      stopFade()
+
+      const startingVolume = audio.volume
+      const volumeDelta = targetVolume - startingVolume
+
+      if (Math.abs(volumeDelta) < 0.001) {
+        audio.volume = targetVolume
+
+        if (pauseOnComplete && targetVolume <= 0.001) {
+          audio.pause()
+        }
+
+        return
+      }
+
+      const startTimestamp = performance.now()
+
+      const step = (timestamp: number) => {
+        if (fadeRunId !== fadeRunIdRef.current) {
+          return
+        }
+
+        const progress = Math.min((timestamp - startTimestamp) / MUSIC_FADE_DURATION_MS, 1)
+        const easedProgress = 1 - (1 - progress) * (1 - progress)
+        audio.volume = startingVolume + volumeDelta * easedProgress
+
+        if (progress < 1) {
+          fadeFrameRef.current = window.requestAnimationFrame(step)
+          return
+        }
+
+        audio.volume = targetVolume
+        fadeFrameRef.current = null
+
+        if (pauseOnComplete && targetVolume <= 0.001) {
+          audio.pause()
+        }
+      }
+
+      fadeFrameRef.current = window.requestAnimationFrame(step)
+    },
+    [stopFade],
+  )
+
+  const playAudio = useCallback(
+    async (shouldForcePlay = false) => {
+      const audio = audioRef.current
+
+      if (!audio || (!isEnabled && !shouldForcePlay)) {
+        return
+      }
+
+      if (!audio.paused) {
+        return
+      }
+
+      await ensureAudioPlayback()
+    },
+    [ensureAudioPlayback, isEnabled],
+  )
+
+  const unlockAudio = useCallback(
+    async (shouldPlay = isEnabled) => {
+      if (!musicTracks.length || hasUnlockedAudioRef.current) {
+        return
+      }
+
+      hasUnlockedAudioRef.current = true
+      setHasUnlockedAudio(true)
+
+      if (!shouldPlay) {
+        return
+      }
+
+      const audio = audioRef.current
+
+      if (!audio) {
+        return
+      }
+
+      stopFade()
+      audio.volume = 0
+
+      const hasStarted = await ensureAudioPlayback()
+
+      if (!hasStarted) {
+        return
+      }
+
+      await fadeAudioVolume(MUSIC_VOLUME)
+    },
+    [ensureAudioPlayback, fadeAudioVolume, isEnabled, stopFade],
+  )
 
   useEffect(() => {
     if (!musicTracks.length) {
@@ -93,16 +197,17 @@ function useBackgroundMusic(isEnabled: boolean) {
     }
 
     audio.preload = 'auto'
-    audio.volume = MUSIC_VOLUME
+    audio.volume = 0
     audio.addEventListener('ended', handleEnded)
     audioRef.current = audio
 
     return () => {
+      stopFade()
       audio.pause()
       audio.removeEventListener('ended', handleEnded)
       audioRef.current = null
     }
-  }, [])
+  }, [stopFade])
 
   useEffect(() => {
     const audio = audioRef.current
@@ -114,24 +219,35 @@ function useBackgroundMusic(isEnabled: boolean) {
     const nextSourceUrl = new URL(currentTrack.src, window.location.href).href
 
     if (audio.src !== nextSourceUrl) {
+      const preserveVolume = isEnabled && hasUnlockedAudioRef.current ? MUSIC_VOLUME : 0
       audio.src = nextSourceUrl
       audio.load()
+      audio.volume = preserveVolume
     }
 
     if (!isEnabled) {
-      audio.pause()
+      void fadeAudioVolume(0, { pauseOnComplete: true })
       return
     }
 
     if (hasUnlockedAudioRef.current) {
-      void playAudio()
+      void (async () => {
+        const hasStarted = await ensureAudioPlayback()
+
+        if (!hasStarted) {
+          return
+        }
+
+        void fadeAudioVolume(MUSIC_VOLUME)
+      })()
     }
-  }, [currentTrack, isEnabled, playAudio])
+  }, [currentTrack, ensureAudioPlayback, fadeAudioVolume, isEnabled])
 
   return {
     currentTrack,
     shouldShowUnlockButton: musicTracks.length > 0 && !hasUnlockedAudio,
     unlockAudio,
+    playAudio,
   }
 }
 
