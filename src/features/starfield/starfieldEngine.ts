@@ -49,9 +49,9 @@ type AmbientMeteor = {
 }
 
 const TOUCH_VIEWPORT_MAX = 920
-const DEFAULT_DENSITY = 0.000023
-const DEFAULT_MIN_STARS = 30
-const DEFAULT_MAX_STARS = 108
+const DEFAULT_DENSITY = 0.000029
+const DEFAULT_MIN_STARS = 40
+const DEFAULT_MAX_STARS = 136
 const DRIFT_SPEED_MULTIPLIER = 1.8
 
 const LAYERS: readonly StarLayerConfig[] = [
@@ -105,9 +105,9 @@ const resolveRenderProfile = (viewportWidth: number, viewportHeight: number): Re
   if (isLowPowerDevice) {
     return {
       tier: 'conserve',
-      density: 0.00001,
-      minStars: 14,
-      maxStars: 48,
+      density: 0.000012,
+      minStars: 18,
+      maxStars: 60,
       maxPixelRatio: 1,
       targetFps: 30,
     }
@@ -116,9 +116,9 @@ const resolveRenderProfile = (viewportWidth: number, viewportHeight: number): Re
   if (mobileLikeViewport) {
     return {
       tier: 'balanced',
-      density: 0.000016,
-      minStars: 20,
-      maxStars: 72,
+      density: 0.00002,
+      minStars: 26,
+      maxStars: 92,
       maxPixelRatio: 1.15,
       targetFps: 45,
     }
