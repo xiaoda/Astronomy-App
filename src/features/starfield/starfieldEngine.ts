@@ -40,6 +40,7 @@ const TOUCH_VIEWPORT_MAX = 920
 const DEFAULT_DENSITY = 0.00004
 const DEFAULT_MIN_STARS = 56
 const DEFAULT_MAX_STARS = 180
+const DRIFT_SPEED_MULTIPLIER = 1.8
 
 const LAYERS: readonly StarLayerConfig[] = [
   {
@@ -49,7 +50,7 @@ const LAYERS: readonly StarLayerConfig[] = [
     twinkleSpeedRange: [0.8, 1.5],
     twinkleAmplitudeRange: [0.1, 0.22],
     driftRange: [4, 10],
-    driftSpeedRange: [0.18, 0.3],
+    driftSpeedRange: [0.18 * DRIFT_SPEED_MULTIPLIER, 0.3 * DRIFT_SPEED_MULTIPLIER],
   },
   {
     ratio: 0.33,
@@ -58,7 +59,7 @@ const LAYERS: readonly StarLayerConfig[] = [
     twinkleSpeedRange: [1, 1.8],
     twinkleAmplitudeRange: [0.2, 0.35],
     driftRange: [7, 15],
-    driftSpeedRange: [0.12, 0.22],
+    driftSpeedRange: [0.12 * DRIFT_SPEED_MULTIPLIER, 0.22 * DRIFT_SPEED_MULTIPLIER],
   },
   {
     ratio: 0.17,
@@ -67,7 +68,7 @@ const LAYERS: readonly StarLayerConfig[] = [
     twinkleSpeedRange: [1.2, 2.2],
     twinkleAmplitudeRange: [0.28, 0.45],
     driftRange: [10, 20],
-    driftSpeedRange: [0.07, 0.13],
+    driftSpeedRange: [0.07 * DRIFT_SPEED_MULTIPLIER, 0.13 * DRIFT_SPEED_MULTIPLIER],
   },
 ]
 

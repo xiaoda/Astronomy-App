@@ -13,7 +13,9 @@ type DisplayQuote = {
   revision: number
 }
 
-const QUOTE_TRANSITION_MS = 2600
+type QuotePhase = 'steady' | 'fading-in' | 'fading-out'
+
+const QUOTE_FADE_DURATION_MS = 1300
 
 const formatQuoteForDisplay = (quote: string) => {
   const commaIndex = quote.indexOf('，')
@@ -29,59 +31,77 @@ const getQuoteClassName = (quoteLines: string[]) =>
   `welcome-copy ${quoteLines.length > 1 ? 'is-two-line' : 'is-one-line'}`
 
 function WelcomePanel({ showQuote, currentQuote, quoteRevision }: WelcomePanelProps) {
-  const [activeQuote, setActiveQuote] = useState<DisplayQuote>({
+  const [displayedQuote, setDisplayedQuote] = useState<DisplayQuote>({
     text: currentQuote,
     revision: quoteRevision,
   })
-  const [leavingQuote, setLeavingQuote] = useState<DisplayQuote | null>(null)
+  const [pendingQuote, setPendingQuote] = useState<DisplayQuote | null>(null)
+  const [quotePhase, setQuotePhase] = useState<QuotePhase>('fading-in')
 
   useEffect(() => {
-    if (quoteRevision === activeQuote.revision) {
+    if (quoteRevision === displayedQuote.revision || pendingQuote?.revision === quoteRevision) {
       return
     }
 
-    setLeavingQuote(activeQuote)
-    setActiveQuote({
+    setPendingQuote({
       text: currentQuote,
       revision: quoteRevision,
     })
+    setQuotePhase('fading-out')
+  }, [currentQuote, displayedQuote.revision, pendingQuote?.revision, quoteRevision])
+
+  useEffect(() => {
+    if (quotePhase !== 'fading-out' || !pendingQuote) {
+      return
+    }
 
     const timerId = window.setTimeout(() => {
-      setLeavingQuote(null)
-    }, QUOTE_TRANSITION_MS)
+      setDisplayedQuote(pendingQuote)
+      setPendingQuote(null)
+      setQuotePhase('fading-in')
+    }, QUOTE_FADE_DURATION_MS)
 
     return () => {
       window.clearTimeout(timerId)
     }
-  }, [activeQuote, currentQuote, quoteRevision])
+  }, [pendingQuote, quotePhase])
 
-  const activeQuoteLines = formatQuoteForDisplay(activeQuote.text)
-  const leavingQuoteLines = leavingQuote ? formatQuoteForDisplay(leavingQuote.text) : null
-  const leavingQuoteRevision = leavingQuote?.revision ?? -1
+  useEffect(() => {
+    if (quotePhase !== 'fading-in') {
+      return
+    }
+
+    const timerId = window.setTimeout(() => {
+      setQuotePhase('steady')
+    }, QUOTE_FADE_DURATION_MS)
+
+    return () => {
+      window.clearTimeout(timerId)
+    }
+  }, [displayedQuote.revision, quotePhase])
+
+  const displayedQuoteLines = formatQuoteForDisplay(displayedQuote.text)
+  const quoteAnimationClassName =
+    quotePhase === 'fading-out'
+      ? 'quote-fade-out'
+      : quotePhase === 'fading-in'
+        ? 'quote-fade-in'
+        : ''
 
   return (
     <section className="welcome-panel">
       {showQuote ? (
         <>
           <div className="welcome-copy-shell" aria-live="polite">
-            {leavingQuoteLines ? (
-              <p className={`${getQuoteClassName(leavingQuoteLines)} quote-fade-out`}>
-                {leavingQuoteLines.map((line, index) => (
-                  <span
-                    key={`${leavingQuoteRevision}-${index}-${line}`}
-                    className="welcome-copy-line"
-                  >
-                    {line}
-                  </span>
-                ))}
-              </p>
-            ) : null}
             <p
-              key={activeQuote.revision}
-              className={`${getQuoteClassName(activeQuoteLines)} quote-fade-in`}
+              key={displayedQuote.revision}
+              className={`${getQuoteClassName(displayedQuoteLines)} ${quoteAnimationClassName}`.trim()}
             >
-              {activeQuoteLines.map((line, index) => (
-                <span key={`${activeQuote.revision}-${index}-${line}`} className="welcome-copy-line">
+              {displayedQuoteLines.map((line, index) => (
+                <span
+                  key={`${displayedQuote.revision}-${index}-${line}`}
+                  className="welcome-copy-line"
+                >
                   {line}
                 </span>
               ))}
