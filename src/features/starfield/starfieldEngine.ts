@@ -36,6 +36,19 @@ type StarBuffer = {
   driftSpeed: Float32Array
 }
 
+type AmbientMeteor = {
+  startTime: number
+  duration: number
+  startX: number
+  startY: number
+  deltaX: number
+  deltaY: number
+  length: number
+  lineWidth: number
+  maxAlpha: number
+  glowRadius: number
+}
+
 const TOUCH_VIEWPORT_MAX = 920
 const DEFAULT_DENSITY = 0.00004
 const DEFAULT_MIN_STARS = 56
@@ -75,6 +88,8 @@ const LAYERS: readonly StarLayerConfig[] = [
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
 
 const randomBetween = (min: number, max: number) => min + Math.random() * (max - min)
+
+const easeOutCubic = (progress: number) => 1 - (1 - progress) ** 3
 
 const isTouchDevice = () =>
   typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0)
@@ -218,6 +233,47 @@ const resizeStarBuffer = (stars: StarBuffer, nextCount: number): StarBuffer => {
   return nextStars
 }
 
+const resolveAmbientMeteorDelay = (profile: RenderProfile) => {
+  if (profile.tier === 'conserve') {
+    return randomBetween(18, 28)
+  }
+
+  if (profile.tier === 'balanced') {
+    return randomBetween(14, 24)
+  }
+
+  return randomBetween(11, 20)
+}
+
+const createAmbientMeteor = (
+  elapsedSeconds: number,
+  width: number,
+  height: number,
+): AmbientMeteor => {
+  const travelsRightToLeft = Math.random() > 0.28
+  const startX = travelsRightToLeft
+    ? randomBetween(width * 0.64, width * 0.92)
+    : randomBetween(width * 0.08, width * 0.36)
+  const deltaX = travelsRightToLeft
+    ? -randomBetween(width * 0.18, width * 0.3)
+    : randomBetween(width * 0.18, width * 0.3)
+  const startY = randomBetween(height * 0.12, height * 0.38)
+  const deltaY = randomBetween(height * 0.08, height * 0.18)
+
+  return {
+    startTime: elapsedSeconds,
+    duration: randomBetween(1.2, 1.9),
+    startX,
+    startY,
+    deltaX,
+    deltaY,
+    length: randomBetween(42, 88),
+    lineWidth: randomBetween(1.1, 1.8),
+    maxAlpha: randomBetween(0.24, 0.4),
+    glowRadius: randomBetween(1.4, 2.4),
+  }
+}
+
 export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngine => {
   const context = canvas.getContext('2d')
 
@@ -238,6 +294,8 @@ export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngin
   let lastFrameTime = 0
   let isRunning = false
   let resizeObserver: ResizeObserver | null = null
+  let ambientMeteor: AmbientMeteor | null = null
+  let nextAmbientMeteorAt = 0
 
   const drawStar = (x: number, y: number, starSize: number) => {
     if (starSize <= 1.4) {
@@ -248,6 +306,61 @@ export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngin
     context.beginPath()
     context.arc(x, y, starSize, 0, Math.PI * 2)
     context.fill()
+  }
+
+  const scheduleNextAmbientMeteor = (elapsedSeconds: number) => {
+    nextAmbientMeteorAt = elapsedSeconds + resolveAmbientMeteorDelay(renderProfile)
+  }
+
+  const drawAmbientMeteor = (elapsedSeconds: number) => {
+    if (!ambientMeteor) {
+      return
+    }
+
+    const progress = clamp(
+      (elapsedSeconds - ambientMeteor.startTime) / ambientMeteor.duration,
+      0,
+      1,
+    )
+
+    if (progress >= 1) {
+      ambientMeteor = null
+      scheduleNextAmbientMeteor(elapsedSeconds)
+      return
+    }
+
+    const easedProgress = easeOutCubic(progress)
+    const headX = ambientMeteor.startX + ambientMeteor.deltaX * easedProgress
+    const headY = ambientMeteor.startY + ambientMeteor.deltaY * easedProgress
+    const travelDistance = Math.hypot(ambientMeteor.deltaX, ambientMeteor.deltaY) || 1
+    const directionX = ambientMeteor.deltaX / travelDistance
+    const directionY = ambientMeteor.deltaY / travelDistance
+    const tailX = headX - directionX * ambientMeteor.length
+    const tailY = headY - directionY * ambientMeteor.length
+    const alpha = Math.sin(progress * Math.PI) * ambientMeteor.maxAlpha
+    const meteorGradient = context.createLinearGradient(headX, headY, tailX, tailY)
+
+    meteorGradient.addColorStop(0, `rgba(245, 251, 255, ${alpha})`)
+    meteorGradient.addColorStop(0.24, `rgba(189, 224, 255, ${alpha * 0.88})`)
+    meteorGradient.addColorStop(1, 'rgba(255, 255, 255, 0)')
+
+    context.save()
+    context.lineCap = 'round'
+    context.lineWidth = ambientMeteor.lineWidth
+    context.strokeStyle = meteorGradient
+    context.shadowBlur = 10
+    context.shadowColor = `rgba(188, 221, 255, ${alpha * 0.75})`
+    context.beginPath()
+    context.moveTo(tailX, tailY)
+    context.lineTo(headX, headY)
+    context.stroke()
+
+    context.globalAlpha = alpha * 0.9
+    context.fillStyle = '#f4fbff'
+    context.beginPath()
+    context.arc(headX, headY, ambientMeteor.glowRadius, 0, Math.PI * 2)
+    context.fill()
+    context.restore()
   }
 
   const resize = () => {
@@ -342,6 +455,12 @@ export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngin
       }
     }
 
+    if (!ambientMeteor && elapsedSeconds >= nextAmbientMeteorAt) {
+      ambientMeteor = createAmbientMeteor(elapsedSeconds, width, height)
+    }
+
+    drawAmbientMeteor(elapsedSeconds)
+
     context.globalAlpha = 1
     animationFrameId = window.requestAnimationFrame(render)
   }
@@ -354,7 +473,9 @@ export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngin
     isRunning = true
     startTime = 0
     lastFrameTime = 0
+    ambientMeteor = null
     resize()
+    nextAmbientMeteorAt = randomBetween(5, 9)
 
     if (typeof ResizeObserver !== 'undefined') {
       resizeObserver = new ResizeObserver(resize)
@@ -373,6 +494,7 @@ export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngin
 
     isRunning = false
     window.cancelAnimationFrame(animationFrameId)
+    ambientMeteor = null
 
     if (resizeObserver) {
       resizeObserver.disconnect()
