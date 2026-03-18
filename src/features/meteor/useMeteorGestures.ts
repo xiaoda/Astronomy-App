@@ -7,7 +7,7 @@ const TAP_MAX_DURATION_MS = 280
 const TAP_COOLDOWN_MS = 260
 const METEOR_COOLDOWN_MS = 1000
 const MOVE_CANCEL_THRESHOLD_PX = 18
-const INTERACTIVE_TARGET_SELECTOR = '.settings-root, .music-unlock-hint'
+const INTERACTIVE_TARGET_SELECTOR = '.settings-root, .music-unlock-hint, .home-scene-back'
 
 type UseMeteorGesturesOptions = {
   canTapTriggerAction: boolean

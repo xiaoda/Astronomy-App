@@ -1,0 +1,163 @@
+.scene-hub-page {
+  position: relative;
+  min-height: 100dvh;
+  overflow: hidden;
+  padding: 2rem;
+  background:
+    radial-gradient(circle at top, rgba(81, 116, 201, 0.24), transparent 32%),
+    radial-gradient(circle at 20% 18%, rgba(123, 156, 232, 0.2), transparent 28%),
+    linear-gradient(180deg, #060914 0%, #0b1327 42%, #070b15 100%);
+  color: var(--text-primary);
+}
+
+.scene-hub-backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 78% 24%, rgba(164, 193, 255, 0.18), transparent 18%),
+    radial-gradient(circle at 18% 78%, rgba(112, 140, 210, 0.16), transparent 22%);
+  filter: blur(12px);
+  pointer-events: none;
+}
+
+.scene-hub-hero,
+.scene-hub-grid {
+  position: relative;
+  z-index: 1;
+}
+
+.scene-hub-hero {
+  width: min(760px, 100%);
+  margin: 0 auto;
+  padding: 5rem 0 2.5rem;
+  text-align: center;
+}
+
+.scene-hub-kicker {
+  margin: 0 0 1rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(214, 227, 255, 0.66);
+}
+
+.scene-hub-title {
+  margin: 0;
+  font-size: clamp(2.3rem, 5.8vw, 4.8rem);
+  line-height: 1.02;
+  letter-spacing: 0.06em;
+}
+
+.scene-hub-description {
+  width: min(44rem, 100%);
+  margin: 1.4rem auto 0;
+  font-size: clamp(0.96rem, 1.9vw, 1.08rem);
+  line-height: 1.9;
+  color: rgba(224, 233, 255, 0.8);
+}
+
+.scene-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+  width: min(1080px, 100%);
+  margin: 0 auto;
+  padding-bottom: 2rem;
+}
+
+.scene-card {
+  position: relative;
+  padding: 1.4rem;
+  border: 1px solid rgba(194, 214, 255, 0.12);
+  border-radius: 26px;
+  background:
+    linear-gradient(180deg, rgba(19, 28, 54, 0.92), rgba(8, 13, 27, 0.96)),
+    rgba(10, 14, 28, 0.92);
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.scene-card-glow {
+  position: absolute;
+  inset: auto -12% 62% auto;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(151, 182, 255, 0.28), transparent 64%);
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+.scene-card-tag,
+.scene-card-title,
+.scene-card-description {
+  position: relative;
+  z-index: 1;
+}
+
+.scene-card-tag {
+  margin: 0 0 0.9rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  color: rgba(210, 223, 255, 0.64);
+}
+
+.scene-card-title {
+  margin: 0;
+  font-size: 1.55rem;
+  letter-spacing: 0.06em;
+}
+
+.scene-card-description {
+  margin: 0.9rem 0 1.5rem;
+  line-height: 1.8;
+  color: rgba(223, 231, 250, 0.8);
+}
+
+.scene-card-button {
+  position: relative;
+  z-index: 1;
+  min-width: 8.6rem;
+  padding: 0.7rem 1.15rem;
+  border: 1px solid rgba(214, 228, 255, 0.2);
+  border-radius: 999px;
+  background: rgba(113, 148, 229, 0.14);
+  color: rgba(245, 248, 255, 0.96);
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+.scene-card-button:hover {
+  border-color: rgba(225, 235, 255, 0.42);
+  background: rgba(130, 166, 245, 0.24);
+  transform: translateY(-1px);
+}
+
+.scene-card-button:focus-visible {
+  outline: 2px solid rgba(230, 238, 255, 0.84);
+  outline-offset: 3px;
+}
+
+@media (max-width: 768px) {
+  .scene-hub-page {
+    padding: 1.25rem;
+  }
+
+  .scene-hub-hero {
+    padding: 3.4rem 0 2rem;
+  }
+
+  .scene-hub-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .scene-card {
+    padding: 1.2rem;
+    border-radius: 22px;
+  }
+}

@@ -1,0 +1,112 @@
+@import '../../app/styles/scene.css';
+
+.home-scene-back,
+.music-unlock-hint {
+  position: absolute;
+  z-index: 5;
+  border: 1px solid rgba(220, 231, 255, 0.28);
+  color: rgba(243, 247, 255, 0.96);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+}
+
+.home-scene-back {
+  top: calc(env(safe-area-inset-top, 0px) + 1.3rem);
+  left: calc(env(safe-area-inset-left, 0px) + 1.3rem);
+  padding: 0.58rem 0.92rem;
+  border-radius: 999px;
+  background:
+    linear-gradient(135deg, rgba(122, 154, 236, 0.16), rgba(255, 255, 255, 0.05)),
+    rgba(10, 16, 32, 0.58);
+  box-shadow:
+    0 10px 32px rgba(6, 10, 26, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.home-scene-back:hover {
+  border-color: rgba(232, 240, 255, 0.46);
+  background:
+    linear-gradient(135deg, rgba(145, 177, 250, 0.24), rgba(255, 255, 255, 0.08)),
+    rgba(10, 16, 32, 0.68);
+  transform: translateY(-1px);
+}
+
+.home-scene-back:focus-visible,
+.music-unlock-hint:focus-visible {
+  outline: 2px solid rgba(230, 238, 255, 0.78);
+  outline-offset: 3px;
+}
+
+.music-unlock-hint {
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
+  transform: translateX(-50%);
+  padding: 0.6rem 0.95rem;
+  border-radius: 999px;
+  background:
+    linear-gradient(135deg, rgba(139, 170, 255, 0.2), rgba(255, 255, 255, 0.05)),
+    rgba(12, 19, 38, 0.58);
+  box-shadow:
+    0 10px 32px rgba(6, 10, 26, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  font-size: 0.84rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  animation: music-unlock-hint-fade 2.4s ease-in-out infinite;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.music-unlock-hint:hover {
+  border-color: rgba(236, 242, 255, 0.5);
+  background:
+    linear-gradient(135deg, rgba(165, 192, 255, 0.28), rgba(255, 255, 255, 0.08)),
+    rgba(12, 19, 38, 0.66);
+  box-shadow:
+    0 14px 36px rgba(6, 10, 26, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.music-unlock-hint:active {
+  transform: translateX(-50%) scale(0.98);
+}
+
+@keyframes music-unlock-hint-fade {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-3px);
+  }
+}
+
+@media (max-width: 768px) {
+  .home-scene-back {
+    top: calc(env(safe-area-inset-top, 0px) + 1rem);
+    left: calc(env(safe-area-inset-left, 0px) + 1rem);
+    padding: 0.54rem 0.8rem;
+    font-size: 0.78rem;
+  }
+
+  .music-unlock-hint {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 1.15rem);
+    max-width: calc(100vw - 2rem);
+    padding: 0.56rem 0.8rem;
+    font-size: 0.8rem;
+    text-align: center;
+    white-space: normal;
+  }
+}
