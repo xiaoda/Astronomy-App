@@ -46,19 +46,18 @@ type AmbientMeteor = {
   length: number
   lineWidth: number
   maxAlpha: number
-  glowRadius: number
 }
 
 const TOUCH_VIEWPORT_MAX = 920
-const DEFAULT_DENSITY = 0.00004
-const DEFAULT_MIN_STARS = 56
-const DEFAULT_MAX_STARS = 180
+const DEFAULT_DENSITY = 0.000023
+const DEFAULT_MIN_STARS = 30
+const DEFAULT_MAX_STARS = 108
 const DRIFT_SPEED_MULTIPLIER = 1.8
 
 const LAYERS: readonly StarLayerConfig[] = [
   {
     ratio: 0.5,
-    sizeRange: [0.8, 1.8],
+    sizeRange: [1.08, 2.8],
     alphaRange: [0.22, 0.62],
     twinkleSpeedRange: [0.8, 1.5],
     twinkleAmplitudeRange: [0.1, 0.22],
@@ -67,7 +66,7 @@ const LAYERS: readonly StarLayerConfig[] = [
   },
   {
     ratio: 0.33,
-    sizeRange: [1.1, 2.3],
+    sizeRange: [1.45, 3.55],
     alphaRange: [0.35, 0.8],
     twinkleSpeedRange: [1, 1.8],
     twinkleAmplitudeRange: [0.2, 0.35],
@@ -76,7 +75,7 @@ const LAYERS: readonly StarLayerConfig[] = [
   },
   {
     ratio: 0.17,
-    sizeRange: [1.6, 3.6],
+    sizeRange: [2.1, 5],
     alphaRange: [0.5, 1],
     twinkleSpeedRange: [1.2, 2.2],
     twinkleAmplitudeRange: [0.28, 0.45],
@@ -106,9 +105,9 @@ const resolveRenderProfile = (viewportWidth: number, viewportHeight: number): Re
   if (isLowPowerDevice) {
     return {
       tier: 'conserve',
-      density: 0.000018,
-      minStars: 28,
-      maxStars: 90,
+      density: 0.00001,
+      minStars: 14,
+      maxStars: 48,
       maxPixelRatio: 1,
       targetFps: 30,
     }
@@ -117,9 +116,9 @@ const resolveRenderProfile = (viewportWidth: number, viewportHeight: number): Re
   if (mobileLikeViewport) {
     return {
       tier: 'balanced',
-      density: 0.000028,
-      minStars: 38,
-      maxStars: 130,
+      density: 0.000016,
+      minStars: 20,
+      maxStars: 72,
       maxPixelRatio: 1.15,
       targetFps: 45,
     }
@@ -270,7 +269,6 @@ const createAmbientMeteor = (
     length: randomBetween(42, 88),
     lineWidth: randomBetween(1.1, 1.8),
     maxAlpha: randomBetween(0.24, 0.4),
-    glowRadius: randomBetween(1.4, 2.4),
   }
 }
 
@@ -298,13 +296,10 @@ export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngin
   let nextAmbientMeteorAt = 0
 
   const drawStar = (x: number, y: number, starSize: number) => {
-    if (starSize <= 1.4) {
-      context.fillRect(x, y, starSize, starSize)
-      return
-    }
+    const halfSize = starSize / 2
 
     context.beginPath()
-    context.arc(x, y, starSize, 0, Math.PI * 2)
+    context.arc(x, y, Math.max(halfSize * 0.82, 0.55), 0, Math.PI * 2)
     context.fill()
   }
 
@@ -354,12 +349,6 @@ export const createStarfieldEngine = (canvas: HTMLCanvasElement): StarfieldEngin
     context.moveTo(tailX, tailY)
     context.lineTo(headX, headY)
     context.stroke()
-
-    context.globalAlpha = alpha * 0.9
-    context.fillStyle = '#f4fbff'
-    context.beginPath()
-    context.arc(headX, headY, ambientMeteor.glowRadius, 0, Math.PI * 2)
-    context.fill()
     context.restore()
   }
 
