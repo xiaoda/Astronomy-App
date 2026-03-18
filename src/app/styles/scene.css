@@ -14,10 +14,136 @@
 .nebula-layer {
   position: absolute;
   inset: 0;
+  overflow: hidden;
   background:
     radial-gradient(circle at 18% 26%, var(--nebula-blue), transparent 42%),
     radial-gradient(circle at 74% 60%, var(--nebula-indigo), transparent 40%);
+  background-repeat: no-repeat;
+  background-size: 132% 132%, 124% 124%;
+  background-position: 10% 20%, 84% 66%;
   opacity: 0.5;
   pointer-events: none;
   z-index: 2;
+  animation: nebula-layer-drift 46s ease-in-out infinite alternate;
+}
+
+.nebula-layer::before,
+.nebula-layer::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+.nebula-layer::before {
+  left: -6%;
+  top: 54%;
+  width: 118%;
+  height: 18%;
+  opacity: 0.28;
+  transform: rotate(8deg);
+  transform-origin: center;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(206, 221, 255, 0.015) 14%,
+      rgba(211, 229, 255, 0.05) 34%,
+      rgba(245, 248, 255, 0.11) 52%,
+      rgba(184, 207, 255, 0.06) 70%,
+      rgba(206, 221, 255, 0.02) 84%,
+      transparent 100%
+    );
+  filter: blur(20px);
+  mix-blend-mode: screen;
+  animation: stardust-band-drift 42s ease-in-out infinite alternate;
+}
+
+.nebula-layer::after {
+  left: -4%;
+  top: 56%;
+  width: 112%;
+  height: 14%;
+  opacity: 0.22;
+  transform: rotate(8deg);
+  transform-origin: center;
+  background:
+    radial-gradient(circle at 8% 46%, rgba(255, 255, 255, 0.11) 0 1px, transparent 2.3px),
+    radial-gradient(circle at 18% 57%, rgba(215, 230, 255, 0.09) 0 1.3px, transparent 2.8px),
+    radial-gradient(circle at 30% 40%, rgba(240, 245, 255, 0.08) 0 0.9px, transparent 2.1px),
+    radial-gradient(circle at 43% 61%, rgba(217, 228, 255, 0.1) 0 1.2px, transparent 2.5px),
+    radial-gradient(circle at 57% 38%, rgba(246, 249, 255, 0.08) 0 1px, transparent 2.2px),
+    radial-gradient(circle at 70% 55%, rgba(204, 223, 255, 0.09) 0 1.2px, transparent 2.6px),
+    radial-gradient(circle at 82% 44%, rgba(245, 248, 255, 0.08) 0 0.9px, transparent 2.1px),
+    radial-gradient(circle at 93% 58%, rgba(215, 230, 255, 0.1) 0 1.3px, transparent 2.7px),
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(228, 236, 255, 0.015) 16%,
+      rgba(238, 243, 255, 0.05) 50%,
+      rgba(219, 229, 255, 0.02) 82%,
+      transparent 100%
+    );
+  filter: blur(6px);
+  mix-blend-mode: screen;
+  animation: stardust-band-glimmer 26s ease-in-out infinite;
+}
+
+@keyframes nebula-layer-drift {
+  0% {
+    background-position: 10% 20%, 84% 66%;
+    opacity: 0.44;
+  }
+
+  50% {
+    background-position: 14% 23%, 80% 62%;
+    opacity: 0.56;
+  }
+
+  100% {
+    background-position: 18% 27%, 76% 58%;
+    opacity: 0.48;
+  }
+}
+
+@keyframes stardust-band-drift {
+  0% {
+    opacity: 0.16;
+    transform: rotate(7deg) translate3d(-3.2%, 1.4%, 0) scaleX(0.98);
+  }
+
+  50% {
+    opacity: 0.28;
+    transform: rotate(9deg) translate3d(0.8%, -0.8%, 0) scaleX(1.01);
+  }
+
+  100% {
+    opacity: 0.18;
+    transform: rotate(10deg) translate3d(3.6%, -2.2%, 0) scaleX(1.03);
+  }
+}
+
+@keyframes stardust-band-glimmer {
+  0%,
+  100% {
+    opacity: 0.09;
+    transform: rotate(8deg) translate3d(-3%, 0.8%, 0);
+  }
+
+  40% {
+    opacity: 0.2;
+    transform: rotate(9deg) translate3d(0.5%, -0.7%, 0);
+  }
+
+  75% {
+    opacity: 0.12;
+    transform: rotate(7deg) translate3d(2.8%, -1.1%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nebula-layer,
+  .nebula-layer::before,
+  .nebula-layer::after {
+    animation: none;
+  }
 }
